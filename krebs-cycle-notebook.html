@@ -1,0 +1,1018 @@
+<title>The Krebs Cycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat+Brush&family=Kalam:wght@300;400;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap">
+
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --f-display:"Caveat Brush","Bradley Hand","Segoe Print",cursive;
+  --f-hand:"Kalam","Segoe Print","Comic Sans MS",cursive;
+  --f-sans:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+
+  --desk:#EBE5D7;
+  --paper:#FBF8F1;
+  --edge:#DBD4C2;
+  --grid-min:rgba(118,122,100,.11);
+  --grid-maj:rgba(118,122,100,.19);
+  --tint:rgba(118,122,100,.055);
+
+  --ink:#2E3129;
+  --ink-2:#585C4C;
+  --ink-3:#8B8E7A;
+
+  --teal:#1C6E70;  --teal-w:rgba(28,110,112,.085);  --teal-b:rgba(28,110,112,.42);
+  --ochre:#A87A18; --ochre-w:rgba(168,122,24,.11);  --ochre-b:rgba(168,122,24,.42);
+  --rust:#B54F27;  --rust-w:rgba(181,79,39,.10);    --rust-b:rgba(181,79,39,.40);
+  --violet:#63479C;--violet-w:rgba(99,71,156,.09);  --violet-b:rgba(99,71,156,.38);
+  --green:#4A7534; --green-w:rgba(74,117,52,.10);   --green-b:rgba(74,117,52,.40);
+  --red:#A33227;   --red-w:rgba(163,50,39,.085);    --red-b:rgba(163,50,39,.38);
+
+  --shadow:rgba(64,58,40,.16);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --desk:#171815; --paper:#212320; --edge:#3B3E35;
+    --grid-min:rgba(198,204,168,.075); --grid-maj:rgba(198,204,168,.13);
+    --tint:rgba(198,204,168,.045);
+    --ink:#E9E5D7; --ink-2:#B3B1A0; --ink-3:#83836F;
+    --teal:#63BEB9;  --teal-w:rgba(99,190,185,.12);  --teal-b:rgba(99,190,185,.42);
+    --ochre:#DDB055; --ochre-w:rgba(221,176,85,.12); --ochre-b:rgba(221,176,85,.42);
+    --rust:#E4885B;  --rust-w:rgba(228,136,91,.12);  --rust-b:rgba(228,136,91,.40);
+    --violet:#AE92DC;--violet-w:rgba(174,146,220,.12);--violet-b:rgba(174,146,220,.40);
+    --green:#94C271; --green-w:rgba(148,194,113,.12);--green-b:rgba(148,194,113,.40);
+    --red:#E37F6E;   --red-w:rgba(227,127,110,.11);  --red-b:rgba(227,127,110,.38);
+    --shadow:rgba(0,0,0,.55);
+  }
+}
+:root[data-theme="dark"]{
+  --desk:#171815; --paper:#212320; --edge:#3B3E35;
+  --grid-min:rgba(198,204,168,.075); --grid-maj:rgba(198,204,168,.13);
+  --tint:rgba(198,204,168,.045);
+  --ink:#E9E5D7; --ink-2:#B3B1A0; --ink-3:#83836F;
+  --teal:#63BEB9;  --teal-w:rgba(99,190,185,.12);  --teal-b:rgba(99,190,185,.42);
+  --ochre:#DDB055; --ochre-w:rgba(221,176,85,.12); --ochre-b:rgba(221,176,85,.42);
+  --rust:#E4885B;  --rust-w:rgba(228,136,91,.12);  --rust-b:rgba(228,136,91,.40);
+  --violet:#AE92DC;--violet-w:rgba(174,146,220,.12);--violet-b:rgba(174,146,220,.40);
+  --green:#94C271; --green-w:rgba(148,194,113,.12);--green-b:rgba(148,194,113,.40);
+  --red:#E37F6E;   --red-w:rgba(227,127,110,.11);  --red-b:rgba(227,127,110,.38);
+  --shadow:rgba(0,0,0,.55);
+}
+
+/* ============ BASE ============ */
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--desk);
+  color:var(--ink);
+  font-family:var(--f-sans);
+  font-size:15px;
+  line-height:1.62;
+  padding:clamp(14px,3vw,40px) clamp(8px,2.5vw,24px) 60px;
+  -webkit-font-smoothing:antialiased;
+}
+sub,sup{font-size:.7em;line-height:0}
+p{margin:0}
+strong{font-weight:600}
+
+/* ============ SHEET ============ */
+.sheet{
+  position:relative;
+  width:min(100%,846px);
+  margin:0 auto clamp(20px,4vw,44px);
+  padding:clamp(26px,4.4vw,46px) clamp(22px,4.6vw,50px) clamp(30px,4vw,42px) clamp(30px,6.2vw,66px);
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(var(--grid-min) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-min) 1px,transparent 1px),
+    linear-gradient(var(--grid-maj) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-maj) 1px,transparent 1px);
+  background-size:23px 23px,23px 23px,115px 115px,115px 115px;
+  background-position:-1px -1px;
+  border:1px solid var(--edge);
+  border-radius:3px;
+  box-shadow:0 1px 2px var(--shadow),0 14px 30px -18px var(--shadow);
+  overflow:hidden;
+}
+.sheet::before{ /* notebook margin rule */
+  content:"";position:absolute;top:0;bottom:0;
+  left:clamp(17px,3.6vw,40px);
+  width:1.5px;background:var(--red);opacity:.34;
+}
+@media (max-width:520px){.sheet::before{display:none}}
+
+.sheet-head{
+  display:flex;justify-content:space-between;align-items:baseline;
+  gap:14px;flex-wrap:wrap;
+  border-bottom:1.4px dashed var(--edge);
+  padding-bottom:9px;margin-bottom:clamp(20px,3vw,30px);
+}
+.sheet-foot{
+  display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+  border-top:1.4px dashed var(--edge);
+  padding-top:9px;margin-top:clamp(22px,3.4vw,34px);
+  font-family:var(--f-hand);font-size:14px;color:var(--ink-3);
+}
+.chip{
+  font-family:var(--f-sans);font-size:10.5px;font-weight:600;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3);
+}
+
+/* ============ HEADINGS ============ */
+.masthead{margin-bottom:6px}
+h1{
+  font-family:var(--f-display);font-weight:400;
+  font-size:clamp(42px,8.4vw,68px);line-height:.98;
+  color:var(--teal);margin:0;letter-spacing:.01em;text-wrap:balance;
+}
+.subtitle{
+  font-family:var(--f-hand);font-size:clamp(15px,2.4vw,18px);
+  color:var(--ink-2);margin-top:8px;
+}
+.sec{margin:clamp(28px,4vw,40px) 0 16px;max-width:400px}
+.sec:first-child{margin-top:0}
+h2{
+  font-family:var(--f-display);font-weight:400;
+  font-size:clamp(27px,4.6vw,35px);line-height:1.08;
+  margin:0;color:var(--teal);text-wrap:balance;
+}
+.sec.c-ochre h2,.sec.c-ochre .ul{color:var(--ochre)}
+.sec.c-violet h2,.sec.c-violet .ul{color:var(--violet)}
+.sec.c-rust h2,.sec.c-rust .ul{color:var(--rust)}
+.sec.c-red h2,.sec.c-red .ul{color:var(--red)}
+.sec.c-green h2,.sec.c-green .ul{color:var(--green)}
+.ul{display:block;width:100%;max-width:330px;height:9px;margin-top:1px;
+    fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;
+    opacity:.72;color:var(--teal)}
+h3{
+  font-family:var(--f-hand);font-weight:700;font-size:17.5px;
+  line-height:1.3;margin:0 0 8px;color:var(--ink);letter-spacing:.005em;
+}
+
+/* ============ CARDS ============ */
+.card{
+  position:relative;padding:16px 18px 17px;
+  background:var(--tint);
+  border:1.5px solid var(--edge);
+  border-radius:14px 9px 16px 10px / 10px 16px 9px 14px;
+}
+.card.teal{background:var(--teal-w);border-color:var(--teal-b)}
+.card.ochre{background:var(--ochre-w);border-color:var(--ochre-b)}
+.card.rust{background:var(--rust-w);border-color:var(--rust-b)}
+.card.violet{background:var(--violet-w);border-color:var(--violet-b)}
+.card.green{background:var(--green-w);border-color:var(--green-b)}
+.card.red{background:var(--red-w);border-color:var(--red-b)}
+.card.tilt-a{transform:rotate(-.35deg)}
+.card.tilt-b{transform:rotate(.3deg)}
+.card > .chip{display:block;margin-bottom:7px}
+.card.teal > .chip{color:var(--teal)}
+.card.ochre > .chip{color:var(--ochre)}
+.card.rust > .chip{color:var(--rust)}
+.card.violet > .chip{color:var(--violet)}
+.card.green > .chip{color:var(--green)}
+.card.red > .chip{color:var(--red)}
+
+.row{display:grid;gap:clamp(14px,2.4vw,20px)}
+.r2{grid-template-columns:1fr 1fr}
+.r3{grid-template-columns:repeat(3,1fr)}
+.r-wide{grid-template-columns:1.45fr 1fr}
+.r-narrow{grid-template-columns:1fr 1.45fr}
+@media (max-width:660px){
+  .r2,.r3,.r-wide,.r-narrow{grid-template-columns:1fr}
+}
+.stack{display:flex;flex-direction:column;gap:clamp(14px,2.4vw,20px)}
+
+/* ============ TEXT UTILITIES ============ */
+.hand{font-family:var(--f-hand);font-size:16.5px;line-height:1.58;color:var(--ink-2)}
+.hand.tight{font-size:15.5px;line-height:1.5}
+.body{font-size:14.6px;line-height:1.66;color:var(--ink-2)}
+.lede{font-size:15.4px;line-height:1.7;color:var(--ink)}
+.marg{
+  font-family:var(--f-hand);font-size:15.5px;line-height:1.42;
+  color:var(--ink-3);display:block;
+}
+.hl{background:linear-gradient(180deg,transparent 52%,var(--ochre-w) 52%,var(--ochre-w) 94%,transparent 94%);
+    padding:0 .14em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hl-t{background:linear-gradient(180deg,transparent 52%,var(--teal-w) 52%,var(--teal-w) 94%,transparent 94%);
+    padding:0 .14em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.k-teal{color:var(--teal);font-weight:600}
+.k-ochre{color:var(--ochre);font-weight:600}
+.k-rust{color:var(--rust);font-weight:600}
+.k-violet{color:var(--violet);font-weight:600}
+.k-green{color:var(--green);font-weight:600}
+.k-red{color:var(--red);font-weight:600}
+.mono-num{font-variant-numeric:tabular-nums}
+
+ul.tick{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.tick li{position:relative;padding-left:18px;font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+ul.tick li::before{
+  content:"";position:absolute;left:2px;top:.62em;
+  width:6px;height:6px;border-radius:50% 40% 55% 45%;
+  background:currentColor;opacity:.5;color:var(--ink-3);
+}
+ul.tick.teal li::before{color:var(--teal);opacity:.75}
+ul.tick.violet li::before{color:var(--violet);opacity:.75}
+ul.tick.green li::before{color:var(--green);opacity:.75}
+ul.tick.rust li::before{color:var(--rust);opacity:.75}
+ul.arrow{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+ul.arrow li{position:relative;padding-left:22px;font-size:14.5px;line-height:1.55;color:var(--ink-2)}
+ul.arrow li::before{content:"→";position:absolute;left:0;top:0;font-family:var(--f-serif);
+  color:var(--ink-3);font-size:14px}
+ul.up li::before{content:"▲";color:var(--green);font-size:9px;top:.3em}
+ul.down li::before{content:"▼";color:var(--red);font-size:9px;top:.3em}
+ul.up,ul.down{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+ul.up li,ul.down li{position:relative;padding-left:19px;font-size:14.2px;line-height:1.5;color:var(--ink-2)}
+
+/* ============ EQUATION PANELS ============ */
+.eq{
+  font-family:var(--f-serif);font-size:15.6px;line-height:1.75;
+  color:var(--ink);background:var(--paper);
+  border:1.4px solid var(--edge);
+  border-left:3.5px solid var(--teal);
+  border-radius:3px;padding:13px 16px;overflow-x:auto;
+}
+.eq.ochre{border-left-color:var(--ochre)}
+.eq.rust{border-left-color:var(--rust)}
+.eq em{font-style:italic}
+.eq-label{font-family:var(--f-sans);font-size:10.5px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:5px}
+
+/* ============ TABLES ============ */
+.tw{overflow-x:auto;border-radius:4px;border:1.4px solid var(--edge)}
+table{border-collapse:collapse;width:100%;min-width:600px;font-size:13.4px}
+thead th{
+  background:var(--teal);color:var(--paper);
+  font-family:var(--f-sans);font-weight:600;font-size:10.8px;
+  letter-spacing:.11em;text-transform:uppercase;
+  text-align:left;padding:9px 11px;white-space:nowrap;
+}
+thead.ochre th{background:var(--ochre)}
+thead.red th{background:var(--red)}
+thead.violet th{background:var(--violet)}
+tbody td{
+  padding:9px 11px;border-top:1px solid var(--edge);
+  vertical-align:top;color:var(--ink-2);line-height:1.5;
+}
+tbody tr:nth-child(even){background:var(--tint)}
+td.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right;font-family:var(--f-serif)}
+td.step{font-family:var(--f-display);font-size:19px;color:var(--teal);width:34px;text-align:center;padding-top:6px}
+td b{color:var(--ink);font-weight:600}
+.tnote{font-family:var(--f-hand);font-size:15px;color:var(--ink-3);margin-top:9px;line-height:1.45}
+
+/* ============ CHIP FLOW (link reaction / carbon ladder) ============ */
+.flow{display:flex;align-items:center;gap:8px;flex-wrap:nowrap}
+.node{
+  font-family:var(--f-sans);font-size:13.6px;font-weight:500;color:var(--ink);
+  background:var(--paper);border:1.5px solid var(--teal-b);
+  border-radius:11px 7px 12px 8px / 8px 12px 7px 11px;
+  padding:7px 12px;white-space:nowrap;
+}
+.node small{display:block;font-size:10.6px;color:var(--ink-3);letter-spacing:.06em;font-weight:600}
+.node.ochre{border-color:var(--ochre-b)}
+.node.rust{border-color:var(--rust-b)}
+.node.violet{border-color:var(--violet-b)}
+.node.solid{background:var(--teal);color:var(--paper);border-color:var(--teal)}
+.node.solid small{color:var(--paper);opacity:.75}
+.arw{flex:0 0 auto;width:30px;height:14px;stroke:var(--ink-3);stroke-width:1.7;fill:none;stroke-linecap:round}
+.arw.rust{stroke:var(--rust)}
+.cc{
+  font-family:var(--f-serif);font-size:12.4px;font-weight:500;
+  background:var(--ochre-w);color:var(--ochre);border:1.3px solid var(--ochre-b);
+  border-radius:20px;padding:2px 9px;white-space:nowrap;
+}
+.cc.rust{background:var(--rust-w);color:var(--rust);border-color:var(--rust-b)}
+
+/* ============ FIGURE ============ */
+.fig{margin:0}
+.fig-scroll{overflow-x:auto;padding-bottom:4px}
+.fig svg{display:block;width:100%;height:auto}
+.wheel-wrap svg{min-width:620px}
+.map-wrap svg{min-width:560px}
+figcaption{
+  font-family:var(--f-hand);font-size:14.5px;color:var(--ink-3);
+  margin-top:8px;line-height:1.45;text-align:center;
+}
+.s-name{font-family:var(--f-sans);font-size:18px;font-weight:500}
+.s-carbon{font-family:var(--f-serif);font-size:13px;font-style:italic}
+.s-enz{font-family:var(--f-sans);font-size:16px;font-weight:500}
+.s-out{font-family:var(--f-serif);font-size:15px}
+.s-hand{font-family:var(--f-hand);font-size:15.5px}
+.s-num{font-family:var(--f-sans);font-size:15px;font-weight:600}
+.s-disp{font-family:var(--f-display);font-size:44px}
+.s-micro{font-family:var(--f-sans);font-size:11.5px;font-weight:600;letter-spacing:.14em}
+
+/* ============ LEDGER ============ */
+.ledger{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:12px}
+.tile{
+  text-align:center;padding:11px 6px 10px;
+  background:var(--paper);border:1.4px solid var(--edge);
+  border-radius:11px 7px 12px 8px / 8px 12px 7px 11px;
+}
+.tile .v{font-family:var(--f-display);font-size:31px;line-height:1;color:var(--teal)}
+.tile .l{font-family:var(--f-sans);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-3);margin-top:6px;font-weight:600}
+.tile.ochre .v{color:var(--ochre)}
+.tile.rust .v{color:var(--rust)}
+.tile.violet .v{color:var(--violet)}
+
+/* ============ WORKED EXAMPLE ============ */
+.work{display:flex;flex-direction:column;gap:0}
+.work .wr{display:grid;grid-template-columns:104px 1fr;gap:14px;padding:9px 0;
+  border-bottom:1px dashed var(--edge)}
+.work .wr:last-child{border-bottom:0}
+.work .wk{font-family:var(--f-sans);font-size:10.5px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--ink-3);padding-top:3px}
+.work .wv{font-family:var(--f-serif);font-size:14.8px;line-height:1.6;color:var(--ink-2)}
+.work .wv b{color:var(--ink)}
+@media (max-width:520px){.work .wr{grid-template-columns:1fr;gap:3px}}
+
+/* ============ RECAP ============ */
+.recap{border:2px solid var(--teal-b);background:var(--teal-w);
+  border-radius:18px 11px 20px 13px / 13px 20px 11px 18px;
+  padding:clamp(18px,3vw,26px)}
+.recap-h{font-family:var(--f-display);font-size:clamp(30px,5.4vw,42px);color:var(--teal);
+  line-height:1;margin:0 0 4px}
+.miniheads{font-family:var(--f-sans);font-size:10.5px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--teal);margin-bottom:6px;display:block}
+.kv{display:flex;flex-direction:column;gap:5px}
+.kv div{display:flex;justify-content:space-between;gap:10px;font-size:13.8px;
+  border-bottom:1px dotted var(--edge);padding-bottom:4px;color:var(--ink-2)}
+.kv div span:last-child{font-family:var(--f-serif);color:var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500}
+.takeaway{font-family:var(--f-hand);font-size:clamp(17px,2.8vw,20px);line-height:1.5;color:var(--ink)}
+
+.refs{font-size:12.2px;color:var(--ink-3);line-height:1.65}
+.refs a{color:var(--ink-3);text-decoration:underline;text-underline-offset:2px;
+  text-decoration-color:var(--edge)}
+.refs a:hover{color:var(--teal);text-decoration-color:var(--teal-b)}
+a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2px}
+
+@media print{
+  @page{size:A4 portrait;margin:0}
+  body{background:#fff;padding:0}
+  .sheet{box-shadow:none;border:0;margin:0;width:100%;page-break-after:always}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<!-- ══════════════════════ SHEET 1 ══════════════════════ -->
+<section class="sheet">
+  <div class="sheet-head">
+    <span class="chip">Biochemistry · Central Metabolism</span>
+    <span class="chip">Sheet 1 / 4 · The Cycle</span>
+  </div>
+
+  <header class="masthead">
+    <h1>The Krebs Cycle</h1>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true" style="max-width:min(100%,430px)"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+    <p class="subtitle">also called the <span class="hl-t">citric acid cycle</span> or the <span class="hl-t">tricarboxylic acid (TCA) cycle</span> — the hub where all fuels converge</p>
+  </header>
+
+  <div class="row r-wide" style="margin-top:26px">
+    <div class="card teal tilt-a">
+      <span class="chip">Definition</span>
+      <p class="lede">A closed loop of <strong>eight enzyme-catalysed reactions</strong> that completely oxidises the acetyl group of acetyl-CoA to <strong>two molecules of CO<sub>2</sub></strong>, capturing the released electrons as <span class="k-ochre">NADH</span> and <span class="k-ochre">FADH<sub>2</sub></span> and one high-energy phosphate as <span class="k-ochre">GTP</span>.</p>
+      <p class="hand" style="margin-top:10px">The cycle rebuilds its own starting material, oxaloacetate — so it acts <em>catalytically</em> and is never used up. One oxaloacetate can shuttle an unlimited number of acetyl groups to CO<sub>2</sub>.</p>
+    </div>
+
+    <div class="card tilt-b">
+      <span class="chip">Key facts</span>
+      <ul class="tick teal">
+        <li><b>Location</b> mitochondrial matrix — except succinate dehydrogenase, embedded in the inner membrane (cytosol in prokaryotes)</li>
+        <li><b>Turns per glucose</b> 2</li>
+        <li><b>8 steps</b> · 4 oxidations · 2 decarboxylations · 1 substrate-level phosphorylation</li>
+        <li><b>Described by</b> Hans Krebs, 1937 — Nobel Prize 1953</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="row r-wide" style="margin-top:20px">
+    <div class="eq">
+      <span class="eq-label">Net equation — one turn</span>
+      Acetyl-CoA + 3 NAD<sup>+</sup> + FAD + GDP + P<sub>i</sub> + 2 H<sub>2</sub>O<br>
+      &nbsp;&nbsp;→ 2 CO<sub>2</sub> + 3 NADH + 3 H<sup>+</sup> + FADH<sub>2</sub> + GTP + CoA-SH
+    </div>
+    <div class="card rust">
+      <span class="chip">Common misreading</span>
+      <p class="hand tight">The cycle <strong>never touches O<sub>2</sub></strong>. Oxygen is consumed downstream at Complex IV. The cycle is aerobic <em>by dependence, not by chemistry</em> — without the electron transport chain to regenerate NAD<sup>+</sup> and FAD, it stalls within seconds.</p>
+    </div>
+  </div>
+
+  <div class="sec"><h2>The wheel</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <figure class="fig">
+    <div class="fig-scroll wheel-wrap">
+      <svg viewBox="0 0 1000 800" role="img" aria-label="Diagram of the eight steps of the Krebs cycle arranged as a wheel, showing each intermediate, its carbon count, the enzyme catalysing each step and the products released.">
+        <defs>
+          <filter id="rough1" x="-6%" y="-6%" width="112%" height="112%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.024" numOctaves="2" seed="11" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="2.3" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+          <marker id="ahTeal" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M1 1 L11 6 L1 11 Z" fill="var(--teal)"/>
+          </marker>
+          <marker id="ahInk" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M1 1.5 L11 6 L1 10.5 Z" fill="var(--ink-3)"/>
+          </marker>
+        </defs>
+
+        <!-- ── linework (roughened) ── -->
+        <g filter="url(#rough1)" fill="none" stroke-linecap="round">
+          <circle cx="500" cy="420" r="265" fill="none" stroke="var(--teal-b)" stroke-width="1.3" stroke-dasharray="2 8" opacity=".55"/>
+          <!-- ring arrows -->
+          <g stroke="var(--teal)" stroke-width="2.8" marker-end="url(#ahTeal)">
+            <path d="M564.1 162.9 A265 265 0 0 1 626.5 187.1"/>
+            <path d="M727.2 283.5 A265 265 0 0 1 754.1 344.7"/>
+            <path d="M757.1 484.1 A265 265 0 0 1 732.9 546.5"/>
+            <path d="M636.5 647.2 A265 265 0 0 1 575.3 674.1"/>
+            <path d="M435.9 677.1 A265 265 0 0 1 373.5 652.9"/>
+            <path d="M272.8 556.5 A265 265 0 0 1 245.9 495.3"/>
+            <path d="M242.9 355.9 A265 265 0 0 1 267.1 293.5"/>
+            <path d="M363.5 192.8 A265 265 0 0 1 424.7 165.9"/>
+          </g>
+          <!-- centre circle -->
+          <circle cx="500" cy="430" r="125" stroke="var(--teal-b)" stroke-width="1.8" stroke-dasharray="7 7"/>
+          <!-- acetyl-CoA entry -->
+          <rect x="398" y="30" width="204" height="52" rx="14" ry="11" fill="var(--teal)" stroke="var(--teal)" stroke-width="2"/>
+          <path d="M566 86 C578 112 582 138 583 160" stroke="var(--teal)" stroke-width="3" marker-end="url(#ahTeal)"/>
+          <!-- metabolite chips -->
+          <g fill="var(--paper)" stroke="var(--teal-b)" stroke-width="1.8">
+            <rect x="431"   y="141"   width="138" height="48" rx="12" ry="10"/>
+            <rect x="618.4" y="218.6" width="138" height="48" rx="12" ry="10"/>
+            <rect x="696"   y="406"   width="138" height="48" rx="12" ry="10"/>
+            <rect x="618.4" y="593.4" width="138" height="48" rx="12" ry="10"/>
+            <rect x="431"   y="671"   width="138" height="48" rx="12" ry="10"/>
+            <rect x="243.6" y="593.4" width="138" height="48" rx="12" ry="10"/>
+            <rect x="166"   y="406"   width="138" height="48" rx="12" ry="10"/>
+            <rect x="243.6" y="218.6" width="138" height="48" rx="12" ry="10"/>
+          </g>
+          <!-- step number bubbles -->
+          <g fill="var(--teal)" stroke="none">
+            <circle cx="620.5" cy="139"   r="15"/>
+            <circle cx="791.0" cy="309.5" r="15"/>
+            <circle cx="791.0" cy="550.5" r="15"/>
+            <circle cx="620.5" cy="721"   r="15"/>
+            <circle cx="379.5" cy="721"   r="15"/>
+            <circle cx="209.0" cy="550.5" r="15"/>
+            <circle cx="209.0" cy="309.5" r="15"/>
+            <circle cx="379.5" cy="139"   r="15"/>
+          </g>
+        </g>
+
+        <!-- ── type layer ── -->
+        <g text-anchor="middle" fill="var(--ink)">
+          <text class="s-name" x="500" y="52" fill="var(--paper)">Acetyl-CoA</text>
+          <text class="s-carbon" x="500" y="70" fill="var(--paper)" opacity=".82">the universal 2-carbon fuel</text>
+
+          <text class="s-name" x="500"   y="169">Oxaloacetate</text><text class="s-carbon" x="500"   y="185" fill="var(--ink-3)">4 C</text>
+          <text class="s-name" x="687.4" y="246.6">Citrate</text>     <text class="s-carbon" x="687.4" y="262.6" fill="var(--ink-3)">6 C</text>
+          <text class="s-name" x="765"   y="434">Isocitrate</text>    <text class="s-carbon" x="765"   y="450" fill="var(--ink-3)">6 C</text>
+          <text class="s-name" x="687.4" y="621.4" font-size="16">α-Ketoglutarate</text><text class="s-carbon" x="687.4" y="637.4" fill="var(--ink-3)">5 C</text>
+          <text class="s-name" x="500"   y="699">Succinyl-CoA</text>  <text class="s-carbon" x="500"   y="715" fill="var(--ink-3)">4 C</text>
+          <text class="s-name" x="312.6" y="621.4">Succinate</text>   <text class="s-carbon" x="312.6" y="637.4" fill="var(--ink-3)">4 C</text>
+          <text class="s-name" x="235"   y="434">Fumarate</text>      <text class="s-carbon" x="235"   y="450" fill="var(--ink-3)">4 C</text>
+          <text class="s-name" x="312.6" y="246.6">Malate</text>      <text class="s-carbon" x="312.6" y="262.6" fill="var(--ink-3)">4 C</text>
+
+          <text class="s-num" x="620.5" y="144.5" fill="var(--paper)">1</text>
+          <text class="s-num" x="791"   y="315"   fill="var(--paper)">2</text>
+          <text class="s-num" x="791"   y="556"   fill="var(--paper)">3</text>
+          <text class="s-num" x="620.5" y="726.5" fill="var(--paper)">4</text>
+          <text class="s-num" x="379.5" y="726.5" fill="var(--paper)">5</text>
+          <text class="s-num" x="209"   y="556"   fill="var(--paper)">6</text>
+          <text class="s-num" x="209"   y="315"   fill="var(--paper)">7</text>
+          <text class="s-num" x="379.5" y="144.5" fill="var(--paper)">8</text>
+
+          <text class="s-micro" x="500" y="386" fill="var(--ink-3)">TCA · CITRIC ACID</text>
+          <text class="s-disp" x="500" y="428" fill="var(--teal)">KREBS</text>
+          <text class="s-disp" x="500" y="470" fill="var(--teal)">CYCLE</text>
+          <text class="s-hand" x="500" y="498" fill="var(--ink-2)">mitochondrial matrix</text>
+          <text class="s-hand" x="500" y="520" fill="var(--ochre)">× 2 turns per glucose</text>
+        </g>
+
+        <!-- enzyme labels: right half -->
+        <g text-anchor="start">
+          <text class="s-enz" x="642.5" y="133" fill="var(--teal)">citrate synthase</text>
+          <text class="s-out" x="642.5" y="153" fill="var(--ink-3)">+ H₂O → CoA-SH</text>
+          <text class="s-hand" x="642.5" y="174" fill="var(--rust)">irreversible — commits the acetyl group</text>
+
+          <text class="s-enz" x="813" y="304" fill="var(--teal)">aconitase</text>
+          <text class="s-out" x="813" y="324" fill="var(--ink-3)">via <tspan font-style="italic">cis</tspan>-aconitate</text>
+          <text class="s-out" x="813" y="344" fill="var(--ink-3)">Fe–S cluster</text>
+
+          <text class="s-enz" x="813" y="528" fill="var(--teal)">isocitrate</text>
+          <text class="s-enz" x="813" y="546" fill="var(--teal)">dehydrogenase</text>
+          <text class="s-out" x="813" y="566" fill="var(--ochre)">NADH <tspan fill="var(--rust)">+ CO₂</tspan></text>
+          <text class="s-hand" x="813" y="586" fill="var(--ochre)">★ rate-limiting</text>
+
+          <text class="s-enz" x="642.5" y="704" fill="var(--teal)">α-ketoglutarate</text>
+          <text class="s-enz" x="642.5" y="722" fill="var(--teal)">dehydrogenase</text>
+          <text class="s-out" x="642.5" y="742" fill="var(--ochre)">NADH <tspan fill="var(--rust)">+ CO₂</tspan></text>
+        </g>
+        <!-- enzyme labels: left half -->
+        <g text-anchor="end">
+          <text class="s-enz" x="357.5" y="704" fill="var(--teal)">succinyl-CoA</text>
+          <text class="s-enz" x="357.5" y="722" fill="var(--teal)">synthetase</text>
+          <text class="s-out" x="357.5" y="742" fill="var(--ochre)">GTP → ATP</text>
+
+          <text class="s-enz" x="187" y="528" fill="var(--teal)">succinate</text>
+          <text class="s-enz" x="187" y="546" fill="var(--teal)">dehydrogenase</text>
+          <text class="s-out" x="187" y="566" fill="var(--ochre)">FADH₂ · Complex II</text>
+          <text class="s-hand" x="187" y="586" fill="var(--ink-3)">the only step in the</text>
+          <text class="s-hand" x="187" y="604" fill="var(--ink-3)">inner membrane</text>
+
+          <text class="s-enz" x="187" y="304" fill="var(--teal)">fumarase</text>
+          <text class="s-out" x="187" y="324" fill="var(--ink-3)">+ H₂O · <tspan font-style="italic">trans</tspan> addition</text>
+
+          <text class="s-enz" x="357.5" y="133" fill="var(--teal)">malate</text>
+          <text class="s-enz" x="357.5" y="151" fill="var(--teal)">dehydrogenase</text>
+          <text class="s-out" x="357.5" y="171" fill="var(--ochre)">NADH</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption>Eight steps, four oxidations, two carbons in and two carbons out — the wheel turns twice for every glucose.</figcaption>
+  </figure>
+
+  <div class="sec c-ochre" style="margin-top:34px"><h2>Ledger for one turn</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="ledger">
+    <div class="tile ochre"><div class="v">3</div><div class="l">NADH</div></div>
+    <div class="tile ochre"><div class="v">1</div><div class="l">FADH<sub>2</sub></div></div>
+    <div class="tile ochre"><div class="v">1</div><div class="l">GTP</div></div>
+    <div class="tile rust"><div class="v">2</div><div class="l">CO<sub>2</sub></div></div>
+    <div class="tile"><div class="v">8</div><div class="l">e<sup>−</sup> harvested</div></div>
+    <div class="tile violet"><div class="v">10</div><div class="l">ATP equiv.</div></div>
+  </div>
+  <p class="marg" style="margin-top:12px">↳ 3 NADH × 2.5 + 1 FADH<sub>2</sub> × 1.5 + 1 GTP = <span class="k-violet">10 ATP per turn</span>, so <span class="k-violet">20 ATP per glucose</span> come from the cycle alone.</p>
+
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>1</span></div>
+</section>
+
+<!-- ══════════════════════ SHEET 2 ══════════════════════ -->
+<section class="sheet">
+  <div class="sheet-head">
+    <span class="chip">Biochemistry · Central Metabolism</span>
+    <span class="chip">Sheet 2 / 4 · The Reactions</span>
+  </div>
+
+  <div class="sec c-rust"><h2>Step zero — the link reaction</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true" style="max-width:min(100%,400px)"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="card rust">
+    <span class="chip">Not part of the cycle — but the gate into it</span>
+    <div class="fig-scroll" style="margin:6px 0 14px">
+      <div class="flow" style="min-width:540px">
+        <div class="node">Pyruvate <small>3 C · from glycolysis</small></div>
+        <svg class="arw" viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7C10 5 17 9 25 7"/><path d="M20 3.5L26 7L20 10.5"/></svg>
+        <div class="node solid">Pyruvate dehydrogenase complex <small>E1 · E2 · E3</small></div>
+        <svg class="arw" viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7C10 5 17 9 25 7"/><path d="M20 3.5L26 7L20 10.5"/></svg>
+        <div class="node ochre">Acetyl-CoA <small>2 C · enters the wheel</small></div>
+      </div>
+      <div class="flow" style="min-width:540px;margin-top:9px">
+        <span class="marg" style="margin:0">releases</span>
+        <span class="cc rust">− CO<sub>2</sub></span>
+        <span class="cc">+ NADH + H<sup>+</sup></span>
+      </div>
+    </div>
+    <div class="row r2">
+      <div>
+        <p class="body"><b>Irreversible</b> — this is the point of no return. Once pyruvate is decarboxylated, its carbons can never go back to glucose, which is why <span class="hl">fatty acids cannot be converted to glucose</span> in humans.</p>
+      </div>
+      <div>
+        <p class="body" style="margin-bottom:6px"><b>Five cofactors</b>, all needed:</p>
+        <p class="hand tight"><span class="k-rust">T</span>hiamine pyrophosphate · <span class="k-rust">L</span>ipoamide · <span class="k-rust">C</span>oA-SH · <span class="k-rust">F</span>AD · <span class="k-rust">N</span>AD<sup>+</sup><br><em>“Tender Loving Care For Nancy”</em></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec"><h2>The eight steps</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="tw">
+    <table>
+      <colgroup><col style="width:4%"><col style="width:26%"><col style="width:19%"><col style="width:32%"><col style="width:11%"><col style="width:8%"></colgroup>
+      <thead>
+        <tr><th>#</th><th>Reaction</th><th>Enzyme</th><th>Chemistry</th><th>Yield</th><th style="text-align:right">ΔG°′</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="step">1</td>
+          <td>Acetyl-CoA + oxaloacetate + H<sub>2</sub>O → <b>citrate</b> + CoA-SH</td>
+          <td><b>citrate synthase</b></td>
+          <td>Claisen condensation; hydrolysis of the thioester bond supplies the driving force</td>
+          <td>—</td>
+          <td class="num k-rust">−32.2</td>
+        </tr>
+        <tr>
+          <td class="step">2</td>
+          <td>Citrate ⇌ <em>cis</em>-aconitate ⇌ <b>isocitrate</b></td>
+          <td><b>aconitase</b></td>
+          <td>Dehydration then rehydration on the opposite face; Fe–S cluster. Moves the −OH onto a carbon that <em>can</em> be oxidised</td>
+          <td>—</td>
+          <td class="num">+13.3</td>
+        </tr>
+        <tr>
+          <td class="step">3</td>
+          <td>Isocitrate + NAD<sup>+</sup> → <b>α-ketoglutarate</b> + CO<sub>2</sub></td>
+          <td><b>isocitrate dehydrogenase</b></td>
+          <td>Oxidative decarboxylation via an oxalosuccinate intermediate — <span class="k-ochre">rate-limiting step</span></td>
+          <td><span class="k-ochre">NADH</span> · <span class="k-rust">CO<sub>2</sub></span></td>
+          <td class="num k-rust">−20.9</td>
+        </tr>
+        <tr>
+          <td class="step">4</td>
+          <td>α-Ketoglutarate + NAD<sup>+</sup> + CoA-SH → <b>succinyl-CoA</b> + CO<sub>2</sub></td>
+          <td><b>α-ketoglutarate dehydrogenase complex</b></td>
+          <td>Oxidative decarboxylation; structurally and mechanistically a twin of the PDH complex — same five cofactors</td>
+          <td><span class="k-ochre">NADH</span> · <span class="k-rust">CO<sub>2</sub></span></td>
+          <td class="num k-rust">−33.5</td>
+        </tr>
+        <tr>
+          <td class="step">5</td>
+          <td>Succinyl-CoA + GDP + P<sub>i</sub> → <b>succinate</b> + GTP + CoA-SH</td>
+          <td><b>succinyl-CoA synthetase</b><br>(succinate thiokinase)</td>
+          <td>The cycle's only <span class="k-ochre">substrate-level phosphorylation</span> — thioester energy is captured directly as a nucleotide triphosphate</td>
+          <td><span class="k-ochre">GTP</span></td>
+          <td class="num">−2.9</td>
+        </tr>
+        <tr>
+          <td class="step">6</td>
+          <td>Succinate + FAD → <b>fumarate</b> + FADH<sub>2</sub></td>
+          <td><b>succinate dehydrogenase</b><br>(= Complex II)</td>
+          <td>FAD is used because the C−C dehydrogenation is not energetic enough to reduce NAD<sup>+</sup>; electrons pass straight to ubiquinone</td>
+          <td><span class="k-ochre">FADH<sub>2</sub></span></td>
+          <td class="num">≈ 0</td>
+        </tr>
+        <tr>
+          <td class="step">7</td>
+          <td>Fumarate + H<sub>2</sub>O → <b>L-malate</b></td>
+          <td><b>fumarase</b><br>(fumarate hydratase)</td>
+          <td>Stereospecific <em>trans</em> hydration — produces only the L isomer, never D</td>
+          <td>—</td>
+          <td class="num">−3.8</td>
+        </tr>
+        <tr>
+          <td class="step">8</td>
+          <td>L-Malate + NAD<sup>+</sup> → <b>oxaloacetate</b> + NADH + H<sup>+</sup></td>
+          <td><b>malate dehydrogenase</b></td>
+          <td>Alcohol oxidised to a ketone, regenerating the acceptor and closing the loop</td>
+          <td><span class="k-ochre">NADH</span></td>
+          <td class="num">+29.7</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="tnote">ΔG°′ in kJ·mol<sup>−1</sup> under standard conditions (Lehninger values; textbooks vary by a few kJ). Steps <span class="k-rust">1, 3 and 4</span> are strongly exergonic and effectively irreversible — they are the cycle's control points.</p>
+
+  <div class="row r-narrow" style="margin-top:22px">
+    <div class="card teal">
+      <span class="chip">Why step 8 runs uphill</span>
+      <p class="body">Malate dehydrogenase has ΔG°′ = <b>+29.7 kJ·mol<sup>−1</sup></b> — thermodynamically it should run backwards. It doesn't, because citrate synthase consumes oxaloacetate the instant it appears, holding matrix [OAA] below ~1 µM.</p>
+      <p class="hand" style="margin-top:9px">The cycle is <span class="hl">pulled forward by product removal</span>, not pushed by each step. Coupling, not brute force.</p>
+    </div>
+    <div class="card">
+      <span class="chip">Order mnemonic</span>
+      <p class="hand" style="font-size:18px;line-height:1.5"><span class="k-teal">C</span>itrate <span class="k-teal">I</span>s <span class="k-teal">K</span>rebs' <span class="k-teal">S</span>tarting <span class="k-teal">S</span>ubstrate <span class="k-teal">F</span>or <span class="k-teal">M</span>aking <span class="k-teal">O</span>xaloacetate</p>
+      <p class="body" style="margin-top:9px">Citrate → Isocitrate → α-<b>K</b>etoglutarate → <b>S</b>uccinyl-CoA → <b>S</b>uccinate → <b>F</b>umarate → <b>M</b>alate → <b>O</b>xaloacetate</p>
+    </div>
+  </div>
+
+  <div class="sec c-rust" style="margin-top:32px"><h2>Following the carbons</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="fig-scroll">
+    <div class="flow" style="min-width:530px;gap:7px">
+      <span class="cc">4 C</span>
+      <span class="hand tight" style="color:var(--teal)">+ 2 C</span>
+      <svg class="arw" viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7C10 5 17 9 25 7"/><path d="M20 3.5L26 7L20 10.5"/></svg>
+      <span class="cc">6 C</span>
+      <svg class="arw" viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7C10 5 17 9 25 7"/><path d="M20 3.5L26 7L20 10.5"/></svg>
+      <span class="cc">6 C</span>
+      <svg class="arw rust" viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7C10 5 17 9 25 7"/><path d="M20 3.5L26 7L20 10.5"/></svg>
+      <span class="cc rust">− CO<sub>2</sub></span>
+      <span class="cc">5 C</span>
+      <svg class="arw rust" viewBox="0 0 30 14" aria-hidden="true"><path d="M1 7C10 5 17 9 25 7"/><path d="M20 3.5L26 7L20 10.5"/></svg>
+      <span class="cc rust">− CO<sub>2</sub></span>
+      <span class="cc">4 C</span>
+    </div>
+  </div>
+  <p class="marg" style="margin-top:10px">↳ oxaloacetate + acetyl-CoA → citrate → isocitrate → α-ketoglutarate → succinyl-CoA, then <b>four more four-carbon steps</b> rebuild oxaloacetate without further carbon loss.</p>
+
+  <div class="card rust" style="margin-top:14px">
+    <span class="chip">The subtlety examiners love</span>
+    <p class="body">The two CO<sub>2</sub> released in a given turn are <b>not</b> the two carbons that just arrived as acetyl-CoA. Isotope labelling shows both released carbons originate from the <b>oxaloacetate</b> already in the cycle: the C4 of oxaloacetate becomes C1 of α-ketoglutarate and leaves at step 4. The acetyl carbons are retained in the four-carbon skeleton and leave on <em>later</em> turns.</p>
+    <p class="marg" style="margin-top:9px">↳ Carbon bookkeeping balances every turn (2 in, 2 out) — but the individual atoms do not.</p>
+  </div>
+
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>2</span></div>
+</section>
+
+<!-- ══════════════════════ SHEET 3 ══════════════════════ -->
+<section class="sheet">
+  <div class="sheet-head">
+    <span class="chip">Biochemistry · Central Metabolism</span>
+    <span class="chip">Sheet 3 / 4 · Control &amp; Connections</span>
+  </div>
+
+  <div class="sec c-violet"><h2>Three valves, one signal</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <p class="lede" style="max-width:64ch;margin-bottom:18px">Unlike glycolysis, the cycle has no single committed step. It is governed by <span class="hl">substrate supply and product inhibition</span> at the three irreversible reactions — and every input reduces to one question: <em>does the cell need energy right now?</em></p>
+
+  <div class="row r3">
+    <div class="card violet tilt-a">
+      <span class="chip">Valve 1 · step 1</span>
+      <h3>Citrate synthase</h3>
+      <ul class="down">
+        <li>ATP, NADH</li>
+        <li>succinyl-CoA (product-like)</li>
+        <li>citrate (own product)</li>
+        <li>long-chain acyl-CoA</li>
+      </ul>
+      <p class="marg" style="margin-top:8px">Mostly limited by how much acetyl-CoA and oxaloacetate are available.</p>
+    </div>
+    <div class="card violet">
+      <span class="chip">Valve 2 · step 3 · rate-limiting</span>
+      <h3>Isocitrate dehydrogenase</h3>
+      <ul class="up"><li>ADP, Ca<sup>2+</sup></li></ul>
+      <ul class="down" style="margin-top:6px"><li>ATP, NADH</li></ul>
+      <p class="marg" style="margin-top:8px">The cycle's true throttle — allosterically sensitive to ADP, so it reads the energy charge directly.</p>
+    </div>
+    <div class="card violet tilt-b">
+      <span class="chip">Valve 3 · step 4</span>
+      <h3>α-KG dehydrogenase</h3>
+      <ul class="up"><li>Ca<sup>2+</sup></li></ul>
+      <ul class="down" style="margin-top:6px"><li>succinyl-CoA, NADH, ATP</li></ul>
+      <p class="marg" style="margin-top:8px">Inhibited by its own product — the same logic as the PDH complex it resembles.</p>
+    </div>
+  </div>
+
+  <div class="row r2" style="margin-top:18px">
+    <div class="card">
+      <span class="chip">Upstream gate · covalent control</span>
+      <h3>The PDH complex is switched, not throttled</h3>
+      <p class="body"><b>PDH kinase</b> phosphorylates and <b>switches it OFF</b> — activated by ATP, NADH and acetyl-CoA (plenty of fuel already). <b>PDH phosphatase</b> dephosphorylates and <b>switches it ON</b> — activated by Ca<sup>2+</sup> and, in adipose tissue, insulin.</p>
+    </div>
+    <div class="card ochre">
+      <span class="chip">The rule that covers all of it</span>
+      <p class="hand" style="font-size:17.5px">High <span class="k-ochre">NADH / NAD<sup>+</sup></span> and high <span class="k-ochre">ATP / ADP</span> ⇒ the cycle slows.<br>Ca<sup>2+</sup> — the signal that muscle is contracting — opens <span class="hl">three enzymes at once</span>, so ATP supply rises exactly when demand does.</p>
+    </div>
+  </div>
+
+  <div class="sec c-green" style="margin-top:34px"><h2>An amphibolic roundabout</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <p class="body" style="max-width:64ch;margin-bottom:14px"><b>Amphibolic</b> = catabolic and anabolic at once. Intermediates are constantly withdrawn for biosynthesis (<span class="k-violet">cataplerosis</span>) and must be replaced (<span class="k-green">anaplerosis</span>) or the wheel runs dry.</p>
+
+  <figure class="fig">
+    <div class="fig-scroll map-wrap">
+      <svg viewBox="0 0 900 350" role="img" aria-label="Map showing biosynthetic pathways that draw carbon out of the Krebs cycle from citrate, alpha-ketoglutarate, succinyl-CoA and oxaloacetate, and the anaplerotic reactions that replenish them.">
+        <defs>
+          <filter id="rough2" x="-6%" y="-6%" width="112%" height="112%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" seed="4" result="n2"/>
+            <feDisplacementMap in="SourceGraphic" in2="n2" scale="1.9" xChannelSelector="R" yChannelSelector="G"/>
+          </filter>
+          <marker id="ahViolet" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M1 1.5 L11 6 L1 10.5 Z" fill="var(--violet)"/>
+          </marker>
+          <marker id="ahGreen" viewBox="0 0 12 12" refX="9" refY="6" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+            <path d="M1 1.5 L11 6 L1 10.5 Z" fill="var(--green)"/>
+          </marker>
+        </defs>
+
+        <g filter="url(#rough2)" fill="none" stroke-linecap="round">
+          <path d="M40 190 H860" stroke="var(--teal-b)" stroke-width="2" stroke-dasharray="9 8"/>
+          <g stroke="var(--violet)" stroke-width="2.5" marker-end="url(#ahViolet)">
+            <path d="M120 166 V112"/><path d="M340 166 V112"/><path d="M560 166 V112"/><path d="M780 166 V112"/>
+          </g>
+          <g stroke="var(--green)" stroke-width="2.5" marker-end="url(#ahGreen)">
+            <path d="M340 272 V218"/><path d="M560 272 V218"/><path d="M780 272 V218"/>
+          </g>
+          <g fill="var(--paper)" stroke="var(--teal-b)" stroke-width="1.8">
+            <rect x="45"  y="168" width="150" height="44" rx="11" ry="9"/>
+            <rect x="265" y="168" width="150" height="44" rx="11" ry="9"/>
+            <rect x="485" y="168" width="150" height="44" rx="11" ry="9"/>
+            <rect x="705" y="168" width="150" height="44" rx="11" ry="9"/>
+          </g>
+        </g>
+
+        <g text-anchor="middle">
+          <text class="s-name" x="120" y="196" fill="var(--ink)">Citrate</text>
+          <text class="s-name" x="340" y="196" fill="var(--ink)">α-Ketoglutarate</text>
+          <text class="s-name" x="560" y="196" fill="var(--ink)">Succinyl-CoA</text>
+          <text class="s-name" x="780" y="196" fill="var(--ink)">Oxaloacetate</text>
+
+          <text class="s-out" x="120" y="66"  fill="var(--violet)">exported to cytosol</text>
+          <text class="s-out" x="120" y="86"  fill="var(--ink-2)">fatty acid &amp;</text>
+          <text class="s-out" x="120" y="104" fill="var(--ink-2)">cholesterol synthesis</text>
+
+          <text class="s-out" x="340" y="66"  fill="var(--violet)">glutamate</text>
+          <text class="s-out" x="340" y="86"  fill="var(--ink-2)">amino acids, purines,</text>
+          <text class="s-out" x="340" y="104" fill="var(--ink-2)">GABA, glutathione</text>
+
+          <text class="s-out" x="560" y="66"  fill="var(--violet)">δ-aminolaevulinate</text>
+          <text class="s-out" x="560" y="86"  fill="var(--ink-2)">porphyrins →</text>
+          <text class="s-out" x="560" y="104" fill="var(--ink-2)">haem</text>
+
+          <text class="s-out" x="780" y="66"  fill="var(--violet)">PEP → gluconeogenesis</text>
+          <text class="s-out" x="780" y="86"  fill="var(--ink-2)">aspartate → pyrimidines,</text>
+          <text class="s-out" x="780" y="104" fill="var(--ink-2)">urea cycle</text>
+
+          <text class="s-out" x="340" y="294" fill="var(--green)">glutamate · glutamine</text>
+          <text class="s-out" x="340" y="314" fill="var(--ink-2)">transamination /</text>
+          <text class="s-out" x="340" y="332" fill="var(--ink-2)">glutamate dehydrogenase</text>
+
+          <text class="s-out" x="560" y="294" fill="var(--green)">propionyl-CoA</text>
+          <text class="s-out" x="560" y="314" fill="var(--ink-2)">odd-chain fatty acids,</text>
+          <text class="s-out" x="560" y="332" fill="var(--ink-2)">Val · Ile · Met · Thr (B₁₂)</text>
+
+          <text class="s-out" x="780" y="294" fill="var(--green)">pyruvate + CO₂</text>
+          <text class="s-out" x="780" y="314" fill="var(--ink-2)">pyruvate carboxylase, biotin</text>
+          <text class="s-hand" x="780" y="334" fill="var(--green)">★ the main top-up reaction</text>
+        </g>
+      </svg>
+    </div>
+    <figcaption><span class="k-violet">▲ violet — carbon leaves for biosynthesis</span> &nbsp;·&nbsp; <span class="k-green">▲ green — carbon is replaced</span></figcaption>
+  </figure>
+
+  <div class="card green" style="margin-top:16px">
+    <span class="chip">Why this matters clinically</span>
+    <p class="body">Acetyl-CoA cannot replenish oxaloacetate — it only <em>consumes</em> it. In starvation or uncontrolled diabetes, oxaloacetate is drained into gluconeogenesis, the cycle cannot keep pace with the acetyl-CoA arriving from fat breakdown, and the surplus is diverted into <b>ketone bodies</b>. Hence the old maxim: <span class="hl">“fats burn in the flame of carbohydrates.”</span></p>
+  </div>
+
+  <div class="sec c-ochre" style="margin-top:34px"><h2>Counting the ATP</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="card">
+    <div class="work">
+      <div class="wr"><div class="wk">Given</div><div class="wv">1 glucose fully oxidised in a liver cell (malate–aspartate shuttle). P/O ratios: <b>2.5 ATP per NADH</b>, <b>1.5 ATP per FADH<sub>2</sub></b>.</div></div>
+      <div class="wr"><div class="wk">Formula</div><div class="wv">ATP<sub>total</sub> = ATP<sub>SLP</sub> + 2.5 · <em>n</em>(NADH) + 1.5 · <em>n</em>(FADH<sub>2</sub>)</div></div>
+      <div class="wr"><div class="wk">Substitution</div><div class="wv">
+        Glycolysis&nbsp;— 2 ATP + 2 NADH<br>
+        Link reaction × 2&nbsp;— 2 NADH<br>
+        Krebs × 2&nbsp;— 6 NADH + 2 FADH<sub>2</sub> + 2 GTP<br>
+        <b>ATP<sub>SLP</sub> = 4 &nbsp;·&nbsp; <em>n</em>(NADH) = 10 &nbsp;·&nbsp; <em>n</em>(FADH<sub>2</sub>) = 2</b>
+      </div></div>
+      <div class="wr"><div class="wk">Calculation</div><div class="wv">4 + (10 × 2.5) + (2 × 1.5) = 4 + 25 + 3</div></div>
+      <div class="wr"><div class="wk">Result</div><div class="wv"><b class="k-ochre" style="font-size:19px">32 ATP per glucose</b> &nbsp;— or <b>30</b> in brain and skeletal muscle, where the glycerol-3-phosphate shuttle delivers the two cytosolic NADH as FADH<sub>2</sub>: 4 + 20 + 6.</div></div>
+      <div class="wr"><div class="wk">Interpretation</div><div class="wv">The cycle itself supplies <b>20 of the 32 ATP</b> (≈ 63 %) and <b>4 of the 6 CO<sub>2</sub></b> — yet it makes only 2 of them by direct phosphorylation. Its real product is <span class="hl">reduced coenzyme</span>; the ATP is minted later, at the electron transport chain.</div></div>
+    </div>
+  </div>
+
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>3</span></div>
+</section>
+
+<!-- ══════════════════════ SHEET 4 ══════════════════════ -->
+<section class="sheet">
+  <div class="sheet-head">
+    <span class="chip">Biochemistry · Central Metabolism</span>
+    <span class="chip">Sheet 4 / 4 · Clinical &amp; Recap</span>
+  </div>
+
+  <div class="sec c-red"><h2>Where the wheel jams</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead class="red">
+        <tr><th>Agent</th><th>Target</th><th>Consequence</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>Fluoroacetate</b> (rodenticide 1080)</td><td><b>aconitase</b> — step 2</td><td>Converted <em>in the cell</em> to fluorocitrate, which blocks the enzyme: “lethal synthesis”. Citrate accumulates; the cycle halts.</td></tr>
+        <tr><td><b>Arsenite</b> &amp; trivalent arsenicals</td><td><b>lipoamide</b> — PDH and α-KG dehydrogenase</td><td>Binds the two neighbouring thiols of dihydrolipoamide, disabling both complexes at once. Lactate and pyruvate rise.</td></tr>
+        <tr><td><b>Malonate</b></td><td><b>succinate dehydrogenase</b> — step 6</td><td>Classic competitive inhibitor — the structural analogue of succinate. Krebs used it as the key evidence that the pathway is a cycle.</td></tr>
+        <tr><td><b>3-Nitropropionic acid</b></td><td><b>succinate dehydrogenase</b> — irreversible</td><td>Selective striatal degeneration; used experimentally to model Huntington disease.</td></tr>
+        <tr><td><b>Thiamine (B<sub>1</sub>) deficiency</b></td><td><b>TPP-dependent enzymes</b> — PDH, α-KG dehydrogenase, transketolase</td><td>Pyruvate cannot enter the cycle → lactic acidosis. Clinically: wet and dry beriberi, Wernicke encephalopathy, Korsakoff syndrome.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="tnote">Neurons and cardiac myocytes fail first — they have the highest oxidative demand and the least glycolytic reserve.</p>
+
+  <div class="sec c-violet" style="margin-top:32px"><h2>Intermediates as signals</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true" style="max-width:min(100%,300px)"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="row r2">
+    <div class="card violet tilt-a">
+      <span class="chip">Oncometabolites</span>
+      <ul class="tick violet">
+        <li><b>IDH1 / IDH2 mutations</b> — a neomorphic activity converts α-ketoglutarate into <b>D-2-hydroxyglutarate</b>, which blocks α-KG-dependent dioxygenases and drives DNA and histone hypermethylation. Found in gliomas, AML and chondrosarcoma.</li>
+        <li><b>SDH (A–D) mutations</b> — succinate accumulates; hereditary paraganglioma, phaeochromocytoma and GIST, with pseudohypoxia through HIF-1α stabilisation.</li>
+        <li><b>FH mutations</b> — fumarate accumulates and covalently modifies cysteines (“succination”), including those of aconitase; causes hereditary leiomyomatosis and renal cell carcinoma.</li>
+      </ul>
+      <p class="marg" style="margin-top:9px">↳ Three cycle enzymes are bona fide <b>tumour suppressors</b> — metabolism as genetics.</p>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <span class="chip">Inherited enzyme defects</span>
+        <ul class="tick">
+          <li><b>Pyruvate dehydrogenase deficiency</b> — congenital lactic acidosis, hypotonia and neurological impairment; a ketogenic diet helps because ketones enter the cycle downstream of the block.</li>
+          <li><b>MDH2 mutations</b> — early-onset encephalopathy, refractory epilepsy and raised blood and CSF lactate.</li>
+        </ul>
+      </div>
+      <div class="card green">
+        <span class="chip">Immunometabolism</span>
+        <p class="body">In activated macrophages the cycle is deliberately <b>broken</b> at two points so that intermediates accumulate as messengers: succinate stabilises HIF-1α and drives IL-1β, while citrate is diverted to make <b>itaconate</b>, which is anti-inflammatory. The cycle is a signalling hub, not just a furnace.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec c-red" style="margin-top:32px"><h2>Six things people get wrong</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="card red">
+    <div class="row r2">
+      <ul class="tick rust">
+        <li><b>“The cycle uses oxygen.”</b> It does not. O<sub>2</sub> is the final electron acceptor at Complex IV; the cycle only depends on that to get NAD<sup>+</sup> and FAD back.</li>
+        <li><b>“NADH gives 3 ATP, FADH<sub>2</sub> gives 2.”</b> Those are the old integer P/O ratios. Current values are <b>2.5</b> and <b>1.5</b>.</li>
+        <li><b>“GTP counts as two ATP.”</b> One GTP ≡ one ATP — nucleoside diphosphate kinase interconverts them freely.</li>
+      </ul>
+      <ul class="tick rust">
+        <li><b>“The acetyl carbons leave as that turn's CO<sub>2</sub>.”</b> They do not — the released carbons come from oxaloacetate.</li>
+        <li><b>“Acetyl-CoA can be turned into glucose.”</b> Not in humans. Both carbons are lost as CO<sub>2</sub> before oxaloacetate is regenerated, so there is no net gain.</li>
+        <li><b>“Succinate dehydrogenase sits in the matrix.”</b> It is the one cycle enzyme bound to the inner membrane — it <em>is</em> Complex II.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec" style="margin-top:36px;max-width:100%">
+    <div class="recap">
+      <p class="recap-h">One-glance recap</p>
+      <p class="hand" style="margin-bottom:18px">Everything worth carrying into the exam hall.</p>
+
+      <div class="row r2">
+        <div>
+          <span class="miniheads">Key numbers</span>
+          <div class="kv">
+            <div><span>Steps · oxidations · decarboxylations</span><span>8 · 4 · 2</span></div>
+            <div><span>Per turn</span><span>3 NADH · 1 FADH<sub>2</sub> · 1 GTP · 2 CO<sub>2</sub></span></div>
+            <div><span>ATP per turn</span><span>10</span></div>
+            <div><span>Turns per glucose</span><span>2</span></div>
+            <div><span>ATP per glucose from the cycle</span><span>20</span></div>
+            <div><span>ATP per glucose, total</span><span>30–32</span></div>
+            <div><span>Rate-limiting enzyme</span><span>isocitrate dehydrogenase</span></div>
+          </div>
+        </div>
+        <div>
+          <span class="miniheads">Formulas worth memorising</span>
+          <div class="eq" style="font-size:14.4px;padding:11px 13px">
+            Acetyl-CoA + 3 NAD<sup>+</sup> + FAD + GDP + P<sub>i</sub> + 2 H<sub>2</sub>O<br>→ 2 CO<sub>2</sub> + 3 NADH + 3 H<sup>+</sup> + FADH<sub>2</sub> + GTP + CoA-SH
+          </div>
+          <div class="eq ochre" style="font-size:14.4px;padding:11px 13px;margin-top:10px">
+            ATP = ATP<sub>SLP</sub> + 2.5 <em>n</em>(NADH) + 1.5 <em>n</em>(FADH<sub>2</sub>)
+          </div>
+          <div class="eq rust" style="font-size:14.4px;padding:11px 13px;margin-top:10px">
+            Pyruvate + CoA-SH + NAD<sup>+</sup> → Acetyl-CoA + CO<sub>2</sub> + NADH
+          </div>
+        </div>
+      </div>
+
+      <div class="row r2" style="margin-top:20px">
+        <div>
+          <span class="miniheads">The three valves</span>
+          <ul class="tick teal">
+            <li><b>Citrate synthase</b> — off with ATP, NADH, succinyl-CoA, citrate</li>
+            <li><b>Isocitrate dehydrogenase</b> — on with ADP and Ca<sup>2+</sup>, off with ATP and NADH</li>
+            <li><b>α-KG dehydrogenase</b> — on with Ca<sup>2+</sup>, off with succinyl-CoA, NADH, ATP</li>
+          </ul>
+        </div>
+        <div>
+          <span class="miniheads">Definitions to be able to write</span>
+          <ul class="tick teal">
+            <li><b>Amphibolic</b> — serving catabolism and anabolism simultaneously</li>
+            <li><b>Anaplerotic</b> — a reaction that replenishes a cycle intermediate; chiefly pyruvate carboxylase</li>
+            <li><b>Cataplerotic</b> — withdrawal of an intermediate for biosynthesis</li>
+            <li><b>Substrate-level phosphorylation</b> — ATP or GTP made directly from a high-energy substrate, no proton gradient involved</li>
+            <li><b>Oxidative decarboxylation</b> — loss of CO<sub>2</sub> coupled to a dehydrogenation (steps 3 and 4)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card ochre" style="margin-top:22px">
+        <span class="chip">Final takeaway</span>
+        <p class="takeaway">The Krebs cycle is not really an ATP factory — it makes just one nucleotide triphosphate per turn. It is an <span class="hl">electron harvester</span> and a <span class="hl">biosynthetic roundabout</span>: its true output is reduced coenzyme for the respiratory chain, and its intermediates are the raw material for fats, haem, amino acids and glucose. Understand what enters and what leaves, and the whole of metabolism organises itself around this one wheel.</p>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:26px">
+    <span class="chip">Sources consulted</span>
+    <p class="refs" style="margin-top:6px">
+      Chandel N. S. et al., <a href="https://www.ncbi.nlm.nih.gov/books/NBK541072/">Biochemistry, Citric Acid Cycle</a> and <a href="https://www.ncbi.nlm.nih.gov/books/NBK556032/">Physiology, Krebs Cycle</a>, StatPearls · Jakubowski &amp; Flatt, <a href="https://bio.libretexts.org/Bookshelves/Biochemistry/Fundamentals_of_Biochemistry_(Jakubowski_and_Flatt)/02:_Unit_II-_Bioenergetics_and_Metabolism/16:_The_Citric_Acid_Cycle/16.02:__Reactions_of_the_Citric_Acid_Cycle">Reactions of the Citric Acid Cycle</a>, LibreTexts · <a href="https://proteopedia.org/wiki/index.php/Krebs_cycle_carbons">Krebs cycle carbons</a>, Proteopedia · Yang M. et al., <a href="https://www.jci.org/articles/view/67228">Oncometabolites: linking altered metabolism with cancer</a>, <em>J Clin Invest</em> 2013 · Ternette N. et al., <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3617368/">Inhibition of mitochondrial aconitase by succination in fumarate hydratase deficiency</a> · Ait-El-Mkadem S. et al., <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5223029/">Mutations in MDH2 cause early-onset severe encephalopathy</a> · Ryan D. G. &amp; O'Neill L. A. J., <a href="https://ncbi.nlm.nih.gov/pmc/articles/PMC6485344">Coupling Krebs cycle metabolites to signalling in immunity and cancer</a>. Standard free-energy values follow Nelson &amp; Cox, <em>Lehninger Principles of Biochemistry</em>.
+    </p>
+  </div>
+
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>4</span></div>
+</section>
