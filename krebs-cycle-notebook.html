@@ -29,6 +29,10 @@
   --green:#4A7534; --green-w:rgba(74,117,52,.10);   --green-b:rgba(74,117,52,.40);
   --red:#A33227;   --red-w:rgba(163,50,39,.085);    --red-b:rgba(163,50,39,.38);
 
+  --c1:#00918A; --c2:#A87A18; --c3:#63479C;
+  --c-neg:#00918A; --c-pos:#B0492A;
+  --mk-teal:rgba(28,110,112,.20); --mk-green:rgba(74,117,52,.22); --mk-rust:rgba(181,79,39,.20);
+  --mk-ochre:rgba(168,122,24,.24); --mk-violet:rgba(99,71,156,.20);
   --shadow:rgba(64,58,40,.16);
 }
 @media (prefers-color-scheme:dark){
@@ -43,6 +47,10 @@
     --violet:#AE92DC;--violet-w:rgba(174,146,220,.12);--violet-b:rgba(174,146,220,.40);
     --green:#94C271; --green-w:rgba(148,194,113,.12);--green-b:rgba(148,194,113,.40);
     --red:#E37F6E;   --red-w:rgba(227,127,110,.11);  --red-b:rgba(227,127,110,.38);
+    --c1:#12A296; --c2:#BD8A25; --c3:#8E6FC9;
+    --c-neg:#12A296; --c-pos:#D4784A;
+    --mk-teal:rgba(99,190,185,.22); --mk-green:rgba(148,194,113,.22); --mk-rust:rgba(228,136,91,.22);
+    --mk-ochre:rgba(221,176,85,.24); --mk-violet:rgba(174,146,220,.24);
     --shadow:rgba(0,0,0,.55);
   }
 }
@@ -57,6 +65,10 @@
   --violet:#AE92DC;--violet-w:rgba(174,146,220,.12);--violet-b:rgba(174,146,220,.40);
   --green:#94C271; --green-w:rgba(148,194,113,.12);--green-b:rgba(148,194,113,.40);
   --red:#E37F6E;   --red-w:rgba(227,127,110,.11);  --red-b:rgba(227,127,110,.38);
+  --c1:#12A296; --c2:#BD8A25; --c3:#8E6FC9;
+  --c-neg:#12A296; --c-pos:#D4784A;
+  --mk-teal:rgba(99,190,185,.22); --mk-green:rgba(148,194,113,.22); --mk-rust:rgba(228,136,91,.22);
+  --mk-ochre:rgba(221,176,85,.24); --mk-violet:rgba(174,146,220,.24);
   --shadow:rgba(0,0,0,.55);
 }
 
@@ -349,18 +361,143 @@ figcaption{
 a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2px}
 
 @media print{
-  @page{size:A4 portrait;margin:0}
-  body{background:#fff;padding:0}
-  .sheet{box-shadow:none;border:0;margin:0;width:100%;page-break-after:always}
+  /* the printed sheet is always the daylight one, whatever the screen was set to */
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]){
+    --desk:#FBF8F1; --paper:#FBF8F1; --edge:#DBD4C2;
+    --grid-min:rgba(118,122,100,.11); --grid-maj:rgba(118,122,100,.19);
+    --tint:rgba(118,122,100,.055);
+    --ink:#2E3129; --ink-2:#585C4C; --ink-3:#8B8E7A;
+    --teal:#1C6E70;  --teal-w:rgba(28,110,112,.085);  --teal-b:rgba(28,110,112,.42);
+    --ochre:#A87A18; --ochre-w:rgba(168,122,24,.11);  --ochre-b:rgba(168,122,24,.42);
+    --rust:#B54F27;  --rust-w:rgba(181,79,39,.10);    --rust-b:rgba(181,79,39,.40);
+    --violet:#63479C;--violet-w:rgba(99,71,156,.09);  --violet-b:rgba(99,71,156,.38);
+    --green:#4A7534; --green-w:rgba(74,117,52,.10);   --green-b:rgba(74,117,52,.40);
+    --red:#A33227;   --red-w:rgba(163,50,39,.085);    --red-b:rgba(163,50,39,.38);
+    --c1:#00918A; --c2:#A87A18; --c3:#63479C;
+    --c-neg:#00918A; --c-pos:#B0492A;
+    --mk-teal:rgba(28,110,112,.20); --mk-green:rgba(74,117,52,.22); --mk-rust:rgba(181,79,39,.20);
+    --mk-ochre:rgba(168,122,24,.24); --mk-violet:rgba(99,71,156,.20);
+    --shadow:rgba(64,58,40,.16);
+  }
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 portrait;margin:14mm 12mm}
+  /* the grid lives on the canvas so it tiles across every page, not just the first */
+  html{
+    background-color:var(--paper);
+    background-image:
+      linear-gradient(90deg,transparent 0 17mm,rgba(163,50,39,.30) 17mm 17.4mm,transparent 17.4mm),
+      linear-gradient(var(--grid-min) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid-min) 1px,transparent 1px),
+      linear-gradient(var(--grid-maj) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid-maj) 1px,transparent 1px);
+    background-size:100% 100%,23px 23px,23px 23px,115px 115px,115px 115px;
+    background-repeat:no-repeat,repeat,repeat,repeat,repeat;
+  }
+  body{background:none;padding:0;margin:0}
+  .sheet{
+    background:none;border:0;box-shadow:none;border-radius:0;overflow:visible;
+    margin:0;width:800px;max-width:none;zoom:.84;padding:0 0 6px 40px;
+    break-after:page;page-break-after:always;
+  }
+  .sheet:last-of-type{break-after:auto;page-break-after:auto}
+  .sheet::before{display:none}
+  /* keep small blocks whole; let the long table flow, repeating its header */
+  .card,.molcard,.recap,.eq,.tile,.work .wr,.mollegend,figcaption{break-inside:avoid;page-break-inside:avoid}
+  .fig svg,.chart,.fig-scroll{break-inside:avoid;page-break-inside:avoid}
+  .tw{break-inside:auto;page-break-inside:auto}
+  thead{display:table-header-group}
+  tr{break-inside:avoid;page-break-inside:avoid}
+  .sec,h2,h3{break-after:avoid;page-break-after:avoid}
+  .sheet-foot,figcaption{break-before:avoid;page-break-before:avoid}
+  /* tighter vertical rhythm on paper than on screen */
+  .sec{margin-top:18px!important;margin-bottom:11px}
+  .row{gap:12px}
+  .molgrid{gap:8px}
+  .card{padding:13px 15px 14px}
+  figcaption{margin-top:6px}
+  .fig{margin-bottom:0}
+  .fig-scroll,.chart,.tw{overflow:visible}
+  .wheel-wrap svg,.map-wrap svg,.chart svg{min-width:0}
+  .flow{flex-wrap:nowrap}
+  a{color:var(--ink-2);text-decoration:none}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── molecules ─────────────────────────────────────────────────────────── */
+.molgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(9px,1.7vw,15px)}
+@media(max-width:640px){.molgrid{grid-template-columns:repeat(2,1fr)}}
+.molcard{margin:0;padding:9px 6px 11px;background:var(--paper);border:1.4px solid var(--edge);
+  border-radius:12px 8px 13px 9px / 9px 13px 8px 12px;display:flex;flex-direction:column;align-items:center;
+  break-inside:avoid}
+.molhead{display:flex;align-items:baseline;gap:5px;justify-content:center;flex-wrap:wrap;text-align:center}
+.molnum{font-family:var(--f-display);font-size:16px;color:var(--teal);line-height:1}
+.molname{font-family:var(--f-sans);font-size:12.8px;font-weight:600;color:var(--ink)}
+.molc{font-family:var(--f-serif);font-size:11px;font-style:italic;color:var(--ink-3)}
+svg.mol{width:100%;max-width:168px;height:auto;margin-top:3px}
+.mol-bond path{stroke:var(--ink-2);stroke-width:1.5;fill:none;stroke-linecap:round}
+.mol-t{font-family:var(--f-sans);font-size:13.5px;fill:var(--ink);text-anchor:middle}
+.mol-sm{font-family:var(--f-hand);font-size:11px;fill:var(--ink-3);text-anchor:middle}
+.mol-hl.teal{fill:var(--mk-teal)}   .mol-hl.green{fill:var(--mk-green)}
+.mol-hl.rust{fill:var(--mk-rust)}   .mol-hl.ochre{fill:var(--mk-ochre)}
+.mol-hl.violet{fill:var(--mk-violet)}
+.molnote{font-family:var(--f-hand);font-size:12.6px;line-height:1.35;color:var(--ink-3);
+  text-align:center;margin-top:6px}
+.moltag{display:block;font-family:var(--f-sans);font-size:9.3px;font-weight:600;letter-spacing:.11em;
+  text-transform:uppercase;margin-bottom:2px}
+.moltag.teal{color:var(--teal)} .moltag.green{color:var(--green)} .moltag.rust{color:var(--rust)}
+.moltag.ochre{color:var(--ochre)} .moltag.violet{color:var(--violet)} .moltag.ink{color:var(--ink-3)}
+.mollegend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px}
+.mollegend span{display:inline-flex;align-items:center;gap:6px;font-size:12.4px;color:var(--ink-2)}
+.mollegend i{width:15px;height:11px;border-radius:4px;display:inline-block}
+.arw-lg{width:74px;height:40px;flex:0 0 auto;fill:none;stroke:var(--ink-3);stroke-width:1.8;stroke-linecap:round}
+.arwcol{display:flex;flex-direction:column;align-items:center;gap:1px;flex:0 0 auto}
+.arwlab{font-family:var(--f-sans);font-size:11.5px;font-weight:600;color:var(--teal)}
+.arwsub{font-family:var(--f-hand);font-size:11.5px;color:var(--ink-3);white-space:nowrap}
+
+/* ── charts ────────────────────────────────────────────────────────────── */
+.chart{overflow-x:auto;padding-bottom:4px}
+.chart svg{display:block;width:100%;height:auto;min-width:540px}
+.ch-t{font-family:var(--f-sans);font-size:12.5px;font-weight:600;fill:var(--ink)}
+.ch-u{font-family:var(--f-sans);font-size:10px;letter-spacing:.11em;text-transform:uppercase;fill:var(--ink-3)}
+.ax-grid path{stroke:var(--edge);stroke-width:1;fill:none}
+.ax-zero path{stroke:var(--ink-3);stroke-width:1.5;fill:none}
+.ax-t{font-family:var(--f-serif);font-size:11.5px;fill:var(--ink-2);font-variant-numeric:tabular-nums}
+.ax-n{font-family:var(--f-display);font-size:16px;fill:var(--teal)}
+.ax-a{font-family:var(--f-sans);font-size:10.4px;fill:var(--ink-2);letter-spacing:.04em}
+.bar{fill:var(--c-neg)} .bar.pos{fill:var(--c-pos)} .bar.zero{fill:var(--ink-3)}
+.bar-lab{font-family:var(--f-serif);font-size:12px;fill:var(--ink-2);text-anchor:middle;
+  font-variant-numeric:tabular-nums}
+.cum-line{fill:none;stroke:var(--c1);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.cum-dot{fill:var(--c1);stroke:var(--paper);stroke-width:2}
+.cum-end{font-family:var(--f-serif);font-size:12.5px;fill:var(--ink);text-anchor:middle;font-weight:600}
+.cum-start{font-family:var(--f-sans);font-size:10.4px;fill:var(--ink-3)}
+.lg-t{font-family:var(--f-sans);font-size:11px;fill:var(--ink-2)}
+.sw.neg{fill:var(--c-neg)} .sw.pos{fill:var(--c-pos)}
+.sw.s1{fill:var(--c1)} .sw.s2{fill:var(--c2)} .sw.s3{fill:var(--c3)}
+.e-tick{stroke:var(--ink-3);stroke-width:1.2}
+.e-dot{fill:var(--ink-3);stroke:var(--paper);stroke-width:1.5}
+.e-dot.ochre{fill:var(--c2)} .e-dot.rust{fill:var(--c-pos)} .e-dot.teal{fill:var(--c1)}
+.e-name{font-family:var(--f-sans);font-size:12.4px;fill:var(--ink-2)}
+.e-val{font-family:var(--f-serif);font-size:12.4px;fill:var(--ink);font-variant-numeric:tabular-nums}
+.e-arrow{stroke:var(--ink-3);stroke-width:1.3;fill:none;stroke-dasharray:3 6}
+.brk{fill:none;stroke-width:1.6}
+.brk.ochre{stroke:var(--c2)} .brk.rust{stroke:var(--c-pos)}
+.brk-h{font-family:var(--f-sans);font-size:12.4px;font-weight:600}
+.brk-h.ochre{fill:var(--c2)} .brk-h.rust{fill:var(--c-pos)}
+.brk-t{font-family:var(--f-serif);font-size:12.4px;fill:var(--ink-2)}
+.brk-t.strong{fill:var(--ink);font-weight:600}
+.seg.s1{fill:var(--c1)} .seg.s2{fill:var(--c2)} .seg.s3{fill:var(--c3)}
+.seg-val{font-family:var(--f-serif);font-size:13px;font-weight:600;fill:var(--ink);text-anchor:middle;
+  font-variant-numeric:tabular-nums}
+.row-lab{font-family:var(--f-sans);font-size:11px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;fill:var(--ink-3)}
 </style>
 
 <!-- ══════════════════════ SHEET 1 ══════════════════════ -->
 <section class="sheet">
   <div class="sheet-head">
     <span class="chip">Biochemistry · Central Metabolism</span>
-    <span class="chip">Sheet 1 / 4 · The Cycle</span>
+    <span class="chip">Sheet 1 / 6 · The Cycle</span>
   </div>
 
   <header class="masthead">
@@ -556,7 +693,7 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 <section class="sheet">
   <div class="sheet-head">
     <span class="chip">Biochemistry · Central Metabolism</span>
-    <span class="chip">Sheet 2 / 4 · The Reactions</span>
+    <span class="chip">Sheet 2 / 6 · The Reactions</span>
   </div>
 
   <div class="sec c-rust"><h2>Step zero — the link reaction</h2>
@@ -718,7 +855,176 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
 <section class="sheet">
   <div class="sheet-head">
     <span class="chip">Biochemistry · Central Metabolism</span>
-    <span class="chip">Sheet 3 / 4 · Control &amp; Connections</span>
+    <span class="chip">Sheet 3 / 6 · The Molecules</span>
+  </div>
+
+  <div class="sec c-green"><h2>Nine molecules</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <p class="lede" style="max-width:66ch;margin-bottom:16px">Every intermediate is a short carbon chain capped with carboxylates. Only one group changes at each step — follow the highlight and the whole cycle becomes a single running edit to one molecule.</p>
+
+  <div class="mollegend">
+    <span><i style="background:var(--mk-green)"></i>hydroxyl —OH</span>
+    <span><i style="background:var(--mk-rust)"></i>carbonyl C=O</span>
+    <span><i style="background:var(--mk-ochre)"></i>thioester —S-CoA</span>
+    <span><i style="background:var(--mk-violet)"></i>double bond C=C</span>
+  </div>
+
+  <div class="molgrid">
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">1</span><span class="molname">Oxaloacetate</span><span class="molc">4 C</span></div>
+      <svg viewBox="0 0 172 153" class="mol" role="img" aria-label="Oxaloacetate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/></g><rect class="mol-hl rust" x="63" y="43" width="46" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">C=O</text><text class="mol-t" x="86" y="88">CH₂</text><text class="mol-t" x="86" y="119">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag rust">ketone</span>the acceptor — regenerated every turn</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">2</span><span class="molname">Citrate</span><span class="molc">6 C</span></div>
+      <svg viewBox="0 0 172 184" class="mol" role="img" aria-label="Citrate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/><path d="M86 126 V134"/></g><rect class="mol-hl green" x="47" y="74" width="77" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">HO—C—COO⁻</text><text class="mol-t" x="86" y="119">CH₂</text><text class="mol-t" x="86" y="150">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag green">3° alcohol</span>tertiary alcohol — cannot be oxidised</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">3</span><span class="molname">cis-Aconitate</span><span class="molc">6 C</span></div>
+      <svg viewBox="0 0 172 184" class="mol" role="img" aria-label="cis-Aconitate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M82.5 95 V103"/><path d="M89.5 95 V103"/><path d="M86 126 V134"/></g><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">C—COO⁻</text><text class="mol-t" x="86" y="119">CH</text><text class="mol-t" x="86" y="150">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag ink">enzyme-bound</span>the bound intermediate of aconitase</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">4</span><span class="molname">Isocitrate</span><span class="molc">6 C</span></div>
+      <svg viewBox="0 0 172 184" class="mol" role="img" aria-label="Isocitrate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/><path d="M86 126 V134"/></g><rect class="mol-hl green" x="63" y="105" width="46" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">CH—COO⁻</text><text class="mol-t" x="86" y="119">CHOH</text><text class="mol-t" x="86" y="150">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag green">2° alcohol</span>secondary alcohol — now oxidisable</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">5</span><span class="molname">α-Ketoglutarate</span><span class="molc">5 C</span></div>
+      <svg viewBox="0 0 172 184" class="mol" role="img" aria-label="α-Ketoglutarate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/><path d="M86 126 V134"/></g><rect class="mol-hl rust" x="63" y="43" width="46" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">C=O</text><text class="mol-t" x="86" y="88">CH₂</text><text class="mol-t" x="86" y="119">CH₂</text><text class="mol-t" x="86" y="150">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag rust">α-keto acid</span>first CO₂ has left</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">6</span><span class="molname">Succinyl-CoA</span><span class="molc">4 C</span></div>
+      <svg viewBox="0 0 172 184" class="mol" role="img" aria-label="Succinyl-CoA"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/><path d="M86 126 V134"/></g><rect class="mol-hl ochre" x="63" y="136" width="46" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">CH₂</text><text class="mol-t" x="86" y="119">C=O</text><text class="mol-t" x="86" y="150">S—CoA</text></svg>
+      <figcaption class="molnote"><span class="moltag ochre">thioester</span>thioester — the energy store</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">7</span><span class="molname">Succinate</span><span class="molc">4 C</span></div>
+      <svg viewBox="0 0 172 153" class="mol" role="img" aria-label="Succinate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/></g><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">CH₂</text><text class="mol-t" x="86" y="119">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag ink">symmetric</span>symmetric — no chiral centre left</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">8</span><span class="molname">Fumarate</span><span class="molc">4 C</span></div>
+      <svg viewBox="0 0 172 150" class="mol" role="img" aria-label="Fumarate, trans isomer"><rect class="mol-hl violet" x="58" y="63" width="56" height="24" rx="7" ry="6"/><g class="mol-bond"><path d="M56 68 L38 51"/><path d="M56 82 L38 99"/><path d="M116 68 L134 51"/><path d="M116 82 L134 99"/><path d="M74 71.5 H98"/><path d="M74 78.5 H98"/></g><text class="mol-t" x="64" y="80">C</text><text class="mol-t" x="108" y="80">C</text><text class="mol-t" x="34" y="46" text-anchor="end">⁻OOC</text><text class="mol-t" x="34" y="110" text-anchor="end">H</text><text class="mol-t" x="138" y="46" text-anchor="start">H</text><text class="mol-t" x="138" y="110" text-anchor="start">COO⁻</text><text class="mol-sm" x="86" y="136">trans (E)</text></svg>
+      <figcaption class="molnote"><span class="moltag violet">alkene</span>trans only — maleate is not a substrate</figcaption>
+    </figure>
+    <figure class="molcard">
+      <div class="molhead"><span class="molnum">9</span><span class="molname">L-Malate</span><span class="molc">4 C</span></div>
+      <svg viewBox="0 0 172 153" class="mol" role="img" aria-label="L-Malate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/></g><rect class="mol-hl green" x="63" y="43" width="46" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">HO—CH</text><text class="mol-t" x="86" y="88">CH₂</text><text class="mol-t" x="86" y="119">COO⁻</text></svg>
+      <figcaption class="molnote"><span class="moltag green">L only</span>water added across the double bond</figcaption>
+    </figure>
+  </div>
+
+  <div class="sec c-teal" style="margin-top:34px"><h2>Why step 2 exists</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <div class="card teal">
+    <span class="chip">An entire step to move one hydroxyl</span>
+    <div class="row r-narrow" style="align-items:center">
+      <div class="fig-scroll">
+        <div class="flow" style="min-width:430px;justify-content:center">
+          <div style="text-align:center"><svg viewBox="0 0 172 184" class="mol" role="img" aria-label="Citrate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/><path d="M86 126 V134"/></g><rect class="mol-hl green" x="47" y="74" width="77" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">HO—C—COO⁻</text><text class="mol-t" x="86" y="119">CH₂</text><text class="mol-t" x="86" y="150">COO⁻</text></svg><div class="molnote"><span class="moltag green">3° alcohol</span>citrate</div></div>
+          <div class="arwcol"><span class="arwlab">aconitase</span><svg class="arw-lg" viewBox="0 0 74 40" aria-hidden="true"><path d="M4 20C22 15 46 25 64 20"/><path d="M56 14L68 20L56 26"/></svg><span class="arwsub">−H₂O, then +H₂O</span></div>
+          <div style="text-align:center"><svg viewBox="0 0 172 184" class="mol" role="img" aria-label="Isocitrate"><g class="mol-bond"><path d="M86 33 V41"/><path d="M86 64 V72"/><path d="M86 95 V103"/><path d="M86 126 V134"/></g><rect class="mol-hl green" x="63" y="105" width="46" height="21" rx="7" ry="6"/><text class="mol-t" x="86" y="26">COO⁻</text><text class="mol-t" x="86" y="57">CH₂</text><text class="mol-t" x="86" y="88">CH—COO⁻</text><text class="mol-t" x="86" y="119">CHOH</text><text class="mol-t" x="86" y="150">COO⁻</text></svg><div class="molnote"><span class="moltag green">2° alcohol</span>isocitrate</div></div>
+        </div>
+      </div>
+      <div>
+        <p class="body">Citrate is a dead end. Its hydroxyl sits on a carbon carrying <b>no hydrogen</b> — a tertiary alcohol — and you cannot oxidise an alcohol to a carbonyl without a hydrogen to remove.</p>
+        <p class="body" style="margin-top:9px">Aconitase dehydrates citrate to <em>cis</em>-aconitate and rehydrates it the other way round, relocating the −OH to the neighbouring carbon. Isocitrate is a <b>secondary</b> alcohol with a hydrogen to give up, and step 3 can proceed.</p>
+        <p class="marg" style="margin-top:9px">↳ The cycle spends a whole enzyme on a rearrangement that changes no bonds' count — only their position.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="row r2" style="margin-top:18px">
+    <div class="card violet tilt-a">
+      <span class="chip">Ogston's puzzle · 1948</span>
+      <h3>A symmetric molecule that behaves asymmetrically</h3>
+      <p class="body">Citrate is achiral and looks perfectly symmetric — two identical −CH<sub>2</sub>COO<sup>−</sup> arms. Yet labelling shows the cycle always attacks <em>the same arm</em>, the one contributed by oxaloacetate.</p>
+      <p class="body" style="margin-top:9px">Alexander Ogston resolved it: an enzyme binding a <b>prochiral</b> substrate at <b>three points</b> can tell two apparently identical groups apart, because only one orientation fits the site. Citrate stops being symmetric the moment it is held.</p>
+      <p class="marg" style="margin-top:9px">↳ This is why the carbons leaving as CO<sub>2</sub> are predictable, not random — see sheet 2.</p>
+    </div>
+    <div class="stack">
+      <div class="card ochre">
+        <span class="chip">Why thioesters</span>
+        <p class="body">An oxygen ester is stabilised by resonance — the oxygen lone pair delocalises into the carbonyl. Sulfur's 3p orbitals overlap poorly with carbon's 2p, so a <b>thioester gets almost none of that stabilisation</b> and hydrolyses with ΔG°′ ≈ <b>−31 kJ·mol<sup>−1</sup></b>, on a par with ATP's −30.5.</p>
+        <p class="hand tight" style="margin-top:8px">The cycle cashes this twice: acetyl-CoA drives the condensation in <span class="k-ochre">step 1</span>, and succinyl-CoA is converted straight into GTP in <span class="k-ochre">step 5</span>.</p>
+      </div>
+      <div class="card green">
+        <span class="chip">Stereospecificity</span>
+        <p class="body">Fumarase adds water <em>anti</em> across the double bond and accepts only the <em>trans</em> isomer. The product is exclusively <b>L-malate</b> — maleate, the <em>cis</em> isomer, is not a substrate at all.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>3</span></div>
+</section>
+
+<!-- ══════════════════════ SHEET 4 ══════════════════════ -->
+<section class="sheet">
+  <div class="sheet-head">
+    <span class="chip">Biochemistry · Central Metabolism</span>
+    <span class="chip">Sheet 4 / 6 · Energetics</span>
+  </div>
+
+  <div class="sec c-ochre"><h2>The energy landscape</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <figure class="fig">
+    <div class="chart"><svg viewBox="0 0 900 524" role="img" aria-label="Two panels: standard free-energy change for each of the eight steps, and the cumulative free energy through one turn of the cycle."><g class="ax-grid"><path d="M96 50.1 H872"/><path d="M96 80.7 H872"/><path d="M96 111.3 H872"/><path d="M96 141.9 H872"/><path d="M96 172.5 H872"/><path d="M96 203.1 H872"/><path d="M96 233.6 H872"/><path d="M96 316.0 H872"/><path d="M96 352.7 H872"/><path d="M96 389.3 H872"/><path d="M96 426.0 H872"/><path d="M96 462.7 H872"/></g><g class="ax-zero"><path d="M96 141.9 H872"/></g><g class="ax-t" text-anchor="end"><text x="86" y="54.1">+30</text><text x="86" y="84.7">+20</text><text x="86" y="115.3">+10</text><text x="86" y="145.9">0</text><text x="86" y="176.5">-10</text><text x="86" y="207.1">-20</text><text x="86" y="237.6">-30</text><text x="86" y="320.0">0</text><text x="86" y="356.7">-20</text><text x="86" y="393.3">-40</text><text x="86" y="430.0">-60</text><text x="86" y="466.7">-80</text></g><g><path class="bar neg" d="M118.5 141.88235294117646 L118.5 236.37647058823532 Q118.5 240.37647058823532 122.5 240.37647058823532 L166.5 240.37647058823532 Q170.5 240.37647058823532 170.5 236.37647058823532 L170.5 141.88235294117646 Z"><title>Step 1 — -32.2 kJ/mol</title></path><text class="bar-lab" x="144.5" y="257.4">-32.2</text><path class="bar pos" d="M215.5 141.88235294117646 L215.5 105.19999999999999 Q215.5 101.19999999999999 219.5 101.19999999999999 L263.5 101.19999999999999 Q267.5 101.19999999999999 267.5 105.19999999999999 L267.5 141.88235294117646 Z"><title>Step 2 — +13.3 kJ/mol</title></path><text class="bar-lab" x="241.5" y="92.2">+13.3</text><path class="bar neg" d="M312.5 141.88235294117646 L312.5 201.81176470588235 Q312.5 205.81176470588235 316.5 205.81176470588235 L360.5 205.81176470588235 Q364.5 205.81176470588235 364.5 201.81176470588235 L364.5 141.88235294117646 Z"><title>Step 3 — -20.9 kJ/mol</title></path><text class="bar-lab" x="338.5" y="222.8">-20.9</text><path class="bar neg" d="M409.5 141.88235294117646 L409.5 240.35294117647058 Q409.5 244.35294117647058 413.5 244.35294117647058 L457.5 244.35294117647058 Q461.5 244.35294117647058 461.5 240.35294117647058 L461.5 141.88235294117646 Z"><title>Step 4 — -33.5 kJ/mol</title></path><text class="bar-lab" x="435.5" y="261.4">-33.5</text><path class="bar neg" d="M506.5 141.88235294117646 L506.5 146.75294117647059 Q506.5 150.75294117647059 510.5 150.75294117647059 L554.5 150.75294117647059 Q558.5 150.75294117647059 558.5 146.75294117647059 L558.5 141.88235294117646 Z"><title>Step 5 — -2.9 kJ/mol</title></path><text class="bar-lab" x="532.5" y="167.8">-2.9</text><path class="bar zero" d="M603.5 140.3 h52 v3.2 h-52 Z"/><text class="bar-lab" x="629.5" y="132.9">≈ 0</text><path class="bar neg" d="M700.5 141.88235294117646 L700.5 149.50588235294117 Q700.5 153.50588235294117 704.5 153.50588235294117 L748.5 153.50588235294117 Q752.5 153.50588235294117 752.5 149.50588235294117 L752.5 141.88235294117646 Z"><title>Step 7 — -3.8 kJ/mol</title></path><text class="bar-lab" x="726.5" y="170.5">-3.8</text><path class="bar pos" d="M797.5 141.88235294117646 L797.5 55.03529411764706 Q797.5 51.03529411764706 801.5 51.03529411764706 L845.5 51.03529411764706 Q849.5 51.03529411764706 849.5 55.03529411764706 L849.5 141.88235294117646 Z"><title>Step 8 — +29.7 kJ/mol</title></path><text class="bar-lab" x="823.5" y="42.0">+29.7</text></g><path class="cum-line" d="M96.0 316.0 L144.5 375.0 L241.5 350.6 L338.5 389.0 L435.5 450.4 L532.5 455.7 L629.5 455.7 L726.5 462.7 L823.5 408.2"/><circle class="cum-dot" cx="96.0" cy="316.0" r="4.6"><title>after step 0: 0.0 kJ/mol</title></circle><circle class="cum-dot" cx="144.5" cy="375.0" r="4.6"><title>after step 1: -32.2 kJ/mol</title></circle><circle class="cum-dot" cx="241.5" cy="350.6" r="4.6"><title>after step 2: -18.9 kJ/mol</title></circle><circle class="cum-dot" cx="338.5" cy="389.0" r="4.6"><title>after step 3: -39.8 kJ/mol</title></circle><circle class="cum-dot" cx="435.5" cy="450.4" r="4.6"><title>after step 4: -73.3 kJ/mol</title></circle><circle class="cum-dot" cx="532.5" cy="455.7" r="4.6"><title>after step 5: -76.2 kJ/mol</title></circle><circle class="cum-dot" cx="629.5" cy="455.7" r="4.6"><title>after step 6: -76.2 kJ/mol</title></circle><circle class="cum-dot" cx="726.5" cy="462.7" r="4.6"><title>after step 7: -80.0 kJ/mol</title></circle><circle class="cum-dot" cx="823.5" cy="408.2" r="4.6"><title>after step 8: -50.3 kJ/mol</title></circle><text class="cum-end" x="823.5" y="394.2">−50.3</text><text class="cum-start" x="104" y="306.0">start</text><g class="ax-x" text-anchor="middle"><text class="ax-n" x="144.5" y="492">1</text><text class="ax-a" x="144.5" y="508">CS</text><text class="ax-n" x="241.5" y="492">2</text><text class="ax-a" x="241.5" y="508">ACO</text><text class="ax-n" x="338.5" y="492">3</text><text class="ax-a" x="338.5" y="508">IDH</text><text class="ax-n" x="435.5" y="492">4</text><text class="ax-a" x="435.5" y="508">KGDH</text><text class="ax-n" x="532.5" y="492">5</text><text class="ax-a" x="532.5" y="508">SCS</text><text class="ax-n" x="629.5" y="492">6</text><text class="ax-a" x="629.5" y="508">SDH</text><text class="ax-n" x="726.5" y="492">7</text><text class="ax-a" x="726.5" y="508">FUM</text><text class="ax-n" x="823.5" y="492">8</text><text class="ax-a" x="823.5" y="508">MDH</text></g><text class="ch-t" x="0" y="18">Standard free-energy change per step</text><text class="ch-u" x="900" y="18" text-anchor="end">kJ · mol⁻¹</text><text class="ch-t" x="0" y="292">Cumulative free energy through one turn</text><g class="lg"><rect class="sw neg" x="452" y="8" width="11" height="11" rx="3"/><text class="lg-t" x="469" y="18">exergonic</text><rect class="sw pos" x="556" y="8" width="11" height="11" rx="3"/><text class="lg-t" x="573" y="18">endergonic</text></g></svg></div>
+    <figcaption>Three steps do nearly all the thermodynamic work. Step 8 climbs 29.7 kJ·mol<sup>−1</sup> back up and still runs forward, because citrate synthase keeps oxaloacetate scarce.</figcaption>
+  </figure>
+
+  <div class="card" style="margin-top:16px">
+    <span class="chip">What ΔG°′ does and does not tell you</span>
+    <p class="body">Standard values assume 1 M of everything at pH 7 — conditions no cell ever meets. In a working mitochondrion only steps <b>1, 3 and 4</b> stay far from equilibrium; the other five sit near ΔG ≈ 0 and run in either direction as concentrations shift.</p>
+    <p class="hand" style="margin-top:9px">That is exactly why those three are the regulated steps: <span class="hl">a reaction at equilibrium cannot control flux — only a displaced one can.</span></p>
+  </div>
+
+  <div class="sec c-rust" style="margin-top:34px"><h2>Why FADH₂ is worth less</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <figure class="fig">
+    <div class="chart"><svg viewBox="0 0 900 400" role="img" aria-label="Standard reduction potentials of the redox couples of the cycle and the respiratory chain, showing the energy drop available to NADH versus to succinate."><defs><marker id="eArw" viewBox="0 0 12 12" refX="8" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1.5 L11 6 L1 10.5 Z" fill="var(--ink-3)"/></marker></defs><g class="ax-grid"><path d="M330 48 V360"/></g><path class="e-arrow" d="M64 68 V350" marker-end="url(#eArw)"/><path class="e-tick" d="M319 64.2 H341"/><circle class="e-dot " cx="330" cy="64.2" r="5.2"/><text class="e-name" x="308" y="68.2" text-anchor="end">α-ketoglutarate + CO₂ / isocitrate</text><text class="e-val" x="354" y="68.2">−0.38</text><path class="e-tick" d="M319 78.0 H341"/><circle class="e-dot ochre" cx="330" cy="78.0" r="5.2"/><text class="e-name" x="308" y="82.0" text-anchor="end">NAD⁺ / NADH</text><text class="e-val" x="354" y="82.0">−0.32</text><path class="e-tick" d="M319 101.2 H341"/><circle class="e-dot " cx="330" cy="101.2" r="5.2"/><text class="e-name" x="308" y="101.2" text-anchor="end">FAD / FADH₂  (free flavin)</text><text class="e-val" x="354" y="101.2">−0.22</text><path class="e-tick" d="M319 112.7 H341"/><circle class="e-dot " cx="330" cy="112.7" r="5.2"/><text class="e-name" x="308" y="122.7" text-anchor="end">oxaloacetate / malate</text><text class="e-val" x="354" y="122.7">−0.17</text><path class="e-tick" d="M319 159.2 H341"/><circle class="e-dot rust" cx="330" cy="159.2" r="5.2"/><text class="e-name" x="308" y="156.2" text-anchor="end">fumarate / succinate</text><text class="e-val" x="354" y="156.2">+0.031</text><path class="e-tick" d="M319 162.4 H341"/><circle class="e-dot rust" cx="330" cy="162.4" r="5.2"/><text class="e-name" x="308" y="177.4" text-anchor="end">ubiquinone / ubiquinol</text><text class="e-val" x="354" y="177.4">+0.045</text><path class="e-tick" d="M319 210.7 H341"/><circle class="e-dot " cx="330" cy="210.7" r="5.2"/><text class="e-name" x="308" y="214.7" text-anchor="end">cytochrome c  Fe³⁺ / Fe²⁺</text><text class="e-val" x="354" y="214.7">+0.254</text><path class="e-tick" d="M319 340.6 H341"/><circle class="e-dot teal" cx="330" cy="340.6" r="5.2"/><text class="e-name" x="308" y="344.6" text-anchor="end">½ O₂ / H₂O</text><text class="e-val" x="354" y="344.6">+0.816</text><path class="brk ochre" d="M540 78.0 H549 V340.6 H540"/><path class="brk rust" d="M600 159.2 H609 V340.6 H600"/><text class="brk-h ochre" x="556" y="120">NADH → O₂</text><text class="brk-t" x="556" y="138">ΔE°′ = 1.14 V · ΔG°′ = −219 kJ·mol⁻¹</text><text class="brk-t strong" x="556" y="156">≈ 2.5 ATP</text><text class="brk-h rust" x="616" y="290">succinate → O₂</text><text class="brk-t" x="616" y="308">ΔE°′ = 0.79 V · ΔG°′ = −152 kJ·mol⁻¹</text><text class="brk-t strong" x="616" y="326">≈ 1.5 ATP</text><text class="ch-t" x="0" y="18">Standard reduction potential  E°′ / volts</text><text class="ax-a" x="308" y="42" text-anchor="end">electrons start here</text><text class="ax-a" x="308" y="382" text-anchor="end">…and fall to here</text><text class="ax-a" x="354" y="382">ΔG = −nFΔE°′</text></svg></div>
+    <figcaption>Electrons only fall from a more negative couple to a more positive one. The size of the fall sets the ATP yield.</figcaption>
+  </figure>
+
+  <div class="card rust" style="margin-top:16px">
+    <span class="chip">The answer to the question everyone asks</span>
+    <p class="body">The fumarate/succinate couple sits at <b>+0.031 V</b> — about <b>0.35 V more positive</b> than NAD<sup>+</sup>/NADH. Succinate simply <b>cannot</b> reduce NAD<sup>+</sup>: the electrons would have to run uphill.</p>
+    <p class="body" style="margin-top:9px">So succinate dehydrogenase uses a tightly bound <b>FAD</b> instead and passes its electrons to ubiquinone at +0.045 V — entering the chain <em>past</em> Complex I. One proton-pumping site is skipped, and the yield drops from ≈ 2.5 ATP to ≈ 1.5.</p>
+  </div>
+
+  <div class="sec c-violet" style="margin-top:34px"><h2>Where the ATP comes from</h2>
+    <svg class="ul" viewBox="0 0 320 10" preserveAspectRatio="none" aria-hidden="true"><path d="M3 7C48 2.5 96 9 146 5.2S258 1.8 317 6.4"/></svg>
+  </div>
+
+  <figure class="fig">
+    <div class="chart"><svg viewBox="0 0 900 226" role="img" aria-label="Two stacked bars breaking the 32 ATP per glucose down by stage and by electron carrier."><g class="ax-grid"><path d="M150.0 34 V196"/><path d="M325.0 34 V196"/><path d="M500.0 34 V196"/><path d="M675.0 34 V196"/><path d="M850.0 34 V196"/></g><g class="ax-t" text-anchor="middle"><text x="150.0" y="26">0</text><text x="325.0" y="26">8</text><text x="500.0" y="26">16</text><text x="675.0" y="26">24</text><text x="850.0" y="26">32</text></g><text class="row-lab" x="134" y="77" text-anchor="end">by stage</text><path class="seg s1" d="M155.0 52 H301.125 V90 H155.0 Q150.0 90 150.0 85 V57 Q150.0 52 155.0 52 Z"><title>Glycolysis: 7 ATP</title></path><text class="seg-val" x="225.6" y="45">7</text><path class="seg s2" d="M303.125 52 H410.5 V90 H303.125 V52 Z"><title>Link reaction: 5 ATP</title></path><text class="seg-val" x="356.8" y="45">5</text><path class="seg s3" d="M412.5 52 H845.0 Q850.0 52 850.0 57 V85 Q850.0 90 845.0 90 H412.5 V52 Z"><title>Krebs cycle: 20 ATP</title></path><text class="seg-val" x="631.2" y="45">20</text><rect class="sw s1" x="150" y="99" width="11" height="11" rx="3"/><text class="lg-t" x="167" y="108">Glycolysis</text><rect class="sw s2" x="254.0" y="99" width="11" height="11" rx="3"/><text class="lg-t" x="271.0" y="108">Link reaction</text><rect class="sw s3" x="380.2" y="99" width="11" height="11" rx="3"/><text class="lg-t" x="397.2" y="108">Krebs cycle</text><text class="row-lab" x="134" y="165" text-anchor="end">by carrier</text><path class="seg s1" d="M155.0 140 H235.5 V178 H155.0 Q150.0 178 150.0 173 V145 Q150.0 140 155.0 140 Z"><title>Substrate-level: 4 ATP</title></path><text class="seg-val" x="192.8" y="133">4</text><path class="seg s2" d="M237.5 140 H782.375 V178 H237.5 V140 Z"><title>NADH: 25 ATP</title></path><text class="seg-val" x="509.9" y="133">25</text><path class="seg s3" d="M784.375 140 H845.0 Q850.0 140 850.0 145 V173 Q850.0 178 845.0 178 H784.375 V140 Z"><title>FADH₂: 3 ATP</title></path><text class="seg-val" x="817.2" y="133">3</text><rect class="sw s1" x="150" y="187" width="11" height="11" rx="3"/><text class="lg-t" x="167" y="196">Substrate-level</text><rect class="sw s2" x="291.0" y="187" width="11" height="11" rx="3"/><text class="lg-t" x="308.0" y="196">NADH</text><rect class="sw s3" x="350.6" y="187" width="11" height="11" rx="3"/><text class="lg-t" x="367.6" y="196">FADH₂</text><text class="ch-t" x="0" y="14">Where the 32 ATP per glucose come from</text><text class="ch-u" x="900" y="14" text-anchor="end">ATP · glucose⁻¹</text></svg></div>
+    <figcaption>Liver and heart, using the malate–aspartate shuttle. The same glucose yields 30 ATP in brain and skeletal muscle.</figcaption>
+  </figure>
+
+  <div class="card teal" style="margin-top:16px">
+    <span class="chip">Read both bars together</span>
+    <p class="body">The cycle contributes <b>20 of the 32</b> — but look at the second bar: <b>25 of the 32</b> arrive as NADH, and only <b>4</b> by direct phosphorylation. Per turn the cycle releases about <b>50 kJ·mol<sup>−1</sup></b> under standard conditions, barely one ATP's worth of free energy.</p>
+    <p class="hand" style="margin-top:9px">Almost everything useful leaves as <span class="hl">reduced coenzyme</span>, to be cashed at the respiratory chain. The cycle is the harvest; the chain is the mint.</p>
+  </div>
+
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>4</span></div>
+</section>
+
+<!-- ══════════════════════ SHEET 5 ══════════════════════ -->
+<section class="sheet">
+  <div class="sheet-head">
+    <span class="chip">Biochemistry · Central Metabolism</span>
+    <span class="chip">Sheet 5 / 6 · Control &amp; Connections</span>
   </div>
 
   <div class="sec c-violet"><h2>Three valves, one signal</h2>
@@ -869,14 +1175,14 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
     </div>
   </div>
 
-  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>3</span></div>
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>5</span></div>
 </section>
 
 <!-- ══════════════════════ SHEET 4 ══════════════════════ -->
 <section class="sheet">
   <div class="sheet-head">
     <span class="chip">Biochemistry · Central Metabolism</span>
-    <span class="chip">Sheet 4 / 4 · Clinical &amp; Recap</span>
+    <span class="chip">Sheet 6 / 6 · Clinical &amp; Recap</span>
   </div>
 
   <div class="sec c-red"><h2>Where the wheel jams</h2>
@@ -1014,5 +1320,5 @@ a:focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:2
     </p>
   </div>
 
-  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>4</span></div>
+  <div class="sheet-foot"><span>The Krebs Cycle — revision notebook</span><span>6</span></div>
 </section>
