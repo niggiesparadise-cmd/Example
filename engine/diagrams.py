@@ -468,33 +468,60 @@ def hierarchy(theme: Theme, w: float, spec: Dict) -> Tuple[str, float]:
 # 7. TIMELINE  — history, staging, disease course, project phases
 # --------------------------------------------------------------------------
 def timeline(theme: Theme, w: float, spec: Dict) -> Tuple[str, float]:
+    """Events on an axis, labels alternating above and below.
+
+    The height is derived from the labels rather than fixed, so the card is
+    never padded out with empty space, and the end labels are anchored inward
+    so they cannot run off the edge of the sheet.
+    """
     events: List[Dict] = spec["events"]
-    h = spec.get("height", 30.0)
-    c = Canvas(theme, w, h, seed=97)
-    ax = h * 0.42
-    col_axis = theme.accent(spec.get("accent", "ochre"))
-    c.stroke(sketch.rough_line((1.0, ax), (w - 1.0, ax), c.nid(), 0.20), col_axis, 0.34, .9)
-    c.stroke(sketch.arrow_head((w - 1.0, ax), 0.0, 2.0, c.nid()), col_axis, 0.34)
     n = len(events)
+    lab_pt, time_pt = 6.5, 6.2
+    lab_w = max(16.0, (w - 6.0) / max(1.8, n * 0.78))
+    laid = []
     for i, e in enumerate(events):
-        x = 3.0 + (w - 8.0) * (e["at"] if "at" in e else i / max(1, n - 1))
-        acc = e.get("accent", "teal")
-        col = theme.accent(acc)
+        at = e["at"] if "at" in e else (i / max(1, n - 1))
+        lines = wrap(e["label"], lab_w, lab_pt)
+        laid.append({"e": e, "at": at, "lines": lines, "up": i % 2 == 0})
+    step = lab_pt * PT * 1.16
+    up_h = max((len(l["lines"]) for l in laid if l["up"]), default=0) * step
+    dn_h = max((len(l["lines"]) for l in laid if not l["up"]), default=0) * step
+    stem = 3.2
+    h = spec.get("height") or (up_h + dn_h + 2 * stem + 2 * time_pt * PT * 1.2 + 2.0)
+    c = Canvas(theme, w, h, seed=97)
+    ax = up_h + stem + time_pt * PT * 1.2 + 0.6
+
+    col_axis = theme.accent(spec.get("accent", "ochre"))
+    c.stroke(sketch.rough_line((1.0, ax), (w - 2.5, ax), c.nid(), 0.20), col_axis, 0.34, .9)
+    c.stroke(sketch.arrow_head((w - 1.0, ax), 0.0, 2.0, c.nid()), col_axis, 0.34)
+
+    for l in laid:
+        e, at, lines, up = l["e"], l["at"], l["lines"], l["up"]
+        x = 3.0 + (w - 8.0) * at
+        col = theme.accent(e.get("accent", "teal"))
         c.add(f'<circle cx="{_fmt(x)}" cy="{_fmt(ax)}" r="1.15" fill="{col}" '
               f'fill-opacity="0.85"/>')
-        up = (i % 2 == 0)
-        ty = ax - 3.2 if up else ax + 3.0
+        # keep the end labels inside the drawing area
+        half = max(len(ln) for ln in lines) * lab_pt * PT * 0.25 if lines else 0
+        anchor, tx = "middle", x
+        if x - half < 0.5:
+            anchor, tx = "start", 0.5
+        elif x + half > w - 0.5:
+            anchor, tx = "end", w - 0.5
+        ty = ax - stem if up else ax + stem
         c.stroke(f"M {_fmt(x)} {_fmt(ax + (-1.4 if up else 1.4))} L {_fmt(x)} "
-                 f"{_fmt(ty + (1.0 if up else -1.0))}", col, 0.22, .7)
-        lines = wrap(e["label"], w / max(2.4, n * 0.62), 6.5)
-        if up:
-            c.text_block(x, ty - (len(lines) - 1) * 6.5 * PT * 1.15, lines, 6.5, 1.15,
-                         cls="dg-body", weight="600", color=theme.type.ink)
-        else:
-            c.text_block(x, ty + 1.4, lines, 6.5, 1.15, cls="dg-body", weight="600",
-                         color=theme.type.ink)
+                 f"{_fmt(ty + (0.6 if up else -0.6))}", col, 0.22, .7)
         if e.get("time"):
-            c.text(x, ax + (3.0 if up else -1.9), e["time"], 6.2, col, cls="dg-mono")
+            c.text(x, ax + (3.0 if up else -1.9), e["time"], time_pt, col,
+                   cls="dg-mono", weight="600")
+        if up:
+            c.text_block(tx, ty - 1.0 - (len(lines) - 1) * step, lines, lab_pt, 1.16,
+                         cls="dg-body", weight="600", color=theme.type.ink,
+                         anchor=anchor)
+        else:
+            c.text_block(tx, ty + time_pt * PT * 1.2 + 0.4, lines, lab_pt, 1.16,
+                         cls="dg-body", weight="600", color=theme.type.ink,
+                         anchor=anchor)
     return c.render(), h
 
 
@@ -518,7 +545,10 @@ def compare(theme: Theme, w: float, spec: Dict) -> Tuple[str, float]:
         c.stroke(rough_rect(x, 0, cw, h, 1.6, c.nid(), 0.22), col, 0.26,
                  theme.card.edge_alpha)
         c.text(x + cw / 2, 4.3, side["label"], 8.6, col, cls="dg-label", weight="700")
-        yy = 8.4
+        # centre the shorter side's items so it does not read as a half-empty box
+        n_lines = sum(len(wrap(i, cw - 4.4, pt)) for i in side["items"])
+        block = n_lines * pt * PT * 1.30
+        yy = max(8.4, 7.0 + (h - 7.0 - block) / 2 + pt * PT * 0.9)
         for it in side["items"]:
             lines = wrap(it, cw - 4.4, pt)
             for k, ln in enumerate(lines):

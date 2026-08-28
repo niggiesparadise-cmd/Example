@@ -171,14 +171,36 @@ def layout_page(theme: Theme, index: int, spec: Dict, mods: List[Dict],
         band_gap = tight_gap + add
         slack -= add * n_band_gaps
 
-    weights = [max(b["nat"], 1.0) for b in band_layout]
-    wsum = sum(weights) or 1.0
-    targets = [b["nat"] + (slack * w / wsum if slack > 0 else 0.0)
-               for b, w in zip(band_layout, weights)]
+    # Share the slack by how much each band can actually absorb, not by how
+    # tall it is: a full-width diagram band cannot stretch, so any slack given
+    # to it is simply lost and the page ends short of the foot.
+    def _stretchable(i: int) -> bool:
+        return (mods[i].get("stretch", True) and mods[i].get("type") != "diagram")
+
+    def _col_capacity(col: List[int]) -> float:
+        gap_cap = (g.v_gap_max - tight_gap) * max(0, len(col) - 1)
+        flex_cap = sum(min(heights[i] * 0.20, 11.0) for i in col if _stretchable(i))
+        return gap_cap + flex_cap
+
+    caps = [max((_col_capacity(c) for c in b["cols"]), default=0.0)
+            for b in band_layout]
+    cap_sum = sum(caps)
+    if slack > 0 and cap_sum > 0:
+        give = min(slack, cap_sum)
+        targets = [b["nat"] + give * (c / cap_sum) for b, c in zip(band_layout, caps)]
+        slack -= give
+    else:
+        targets = [b["nat"] for b in band_layout]
+
+    # anything still left goes into the gaps between bands, then is reported
+    if slack > 0.2 and n_band_gaps:
+        add = min(g.v_gap_max - band_gap, slack / n_band_gaps)
+        band_gap += add
+        slack -= add * n_band_gaps
 
     stretch: Dict[int, float] = {}
     gaps: Dict[Tuple[int, int], float] = {}
-    residual = 0.0
+    residual = max(0.0, slack)
 
     for bi, b in enumerate(band_layout):
         target = targets[bi]
@@ -193,8 +215,7 @@ def layout_page(theme: Theme, index: int, spec: Dict, mods: List[Dict],
                 extra -= add * n_gaps
             gaps[(bi, ci)] = gap
             if extra > 0.05:
-                flex = [i for i in col if mods[i].get("stretch", True)
-                        and mods[i].get("type") != "diagram"]
+                flex = [i for i in col if _stretchable(i)]
                 cap = sum(min(heights[i] * 0.20, 11.0) for i in flex)
                 take = min(extra, cap)
                 if cap > 0:
@@ -229,7 +250,17 @@ def layout_page(theme: Theme, index: int, spec: Dict, mods: List[Dict],
     page.fill = card_area / content_area if content_area else 0.0
     bottom = max((p.bottom for p in page.placements), default=top)
     page.vertical = (bottom - top) / avail_h if avail_h else 0.0
-    page.slack = max(0.0, avail_h - (bottom - top)) + residual
+    # Report the emptiness a reader would actually see: how far the emptiest
+    # column stops short of the foot of the sheet.
+    col_bottoms = []
+    for ci in range(n_cols):
+        cx0, cx1 = g.col_x(ci, n_cols), g.col_x(ci, n_cols) + g.col_w(n_cols)
+        # a full-width card covers every column, so it counts for all of them
+        covering = [pl.bottom for pl in page.placements
+                    if min(pl.x + pl.w, cx1) - max(pl.x, cx0) > 1.0]
+        col_bottoms.append(max(covering) if covering else top)
+    shortfall = (top + avail_h) - min(col_bottoms) if col_bottoms else 0.0
+    page.slack = max(0.0, shortfall)
 
     thirds = []
     for t in range(3):
@@ -266,9 +297,9 @@ def layout_page(theme: Theme, index: int, spec: Dict, mods: List[Dict],
         page.warnings.append(f"page {index+1}: fill {page.fill:.0%} — risk of crowding")
     if thirds[2] < d.bottom_band_min:
         page.warnings.append(f"page {index+1}: bottom third only {thirds[2]:.0%} covered")
-    if residual > 12:
-        page.warnings.append(f"page {index+1}: {residual:.0f}mm of height could not be "
-                             f"filled — add a module")
+    if page.slack > 12:
+        page.warnings.append(f"page {index+1}: a column stops {page.slack:.0f}mm short of "
+                             f"the foot of the sheet — add a module or rebalance")
     return page
 
 

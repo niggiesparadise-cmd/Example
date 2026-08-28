@@ -54,8 +54,11 @@ def card_head(theme: Theme, mod: Dict, seed: int) -> str:
     if not title:
         return ""
     tag = mod.get("tag")
-    if tag and tag.strip().lower() == str(title).strip().lower():
-        tag = None          # never label a card with its own title
+    if tag:
+        norm = lambda t: re.sub(r"[^a-z0-9 ]+", " ", str(t).lower()).split()
+        # never label a card with words its own title already says
+        if " ".join(norm(tag)) in " ".join(norm(title)):
+            tag = None
     ul = ""
     if mod.get("underline", True):
         ul = f'<span class="ul">{underline(120, seed, amp=0.75, thickness=1.7)}</span>'
