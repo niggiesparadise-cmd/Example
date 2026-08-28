@@ -1,0 +1,261 @@
+# ---------------------------------------------------------------------------
+# Subject-agnostic demonstration (section H).
+#
+# Three sheets, three unrelated disciplines, one visual language.  Nothing
+# about the engine changes between them — only the information architecture
+# each subject calls for: an algorithm and a growth curve for computer
+# science, a timeline and a causal hierarchy for history, a worked
+# calculation for physics.
+# ---------------------------------------------------------------------------
+title: Subject demonstration
+subject: mixed
+columns: 2
+holes: true
+footer: "engine demonstration · one visual system, three subjects"
+source_note: "content is standard textbook material, used to exercise the engine"
+
+pages:
+
+# ===========================================================================
+- title: "BINARY SEARCH & {{complexity}}"
+  kicker: "computer science · searching a sorted array"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "The idea"
+      accent: teal
+      term: "Binary search"
+      body: >-
+        repeatedly halve a ==sorted== array: compare the target with the
+        middle element, and discard the half that cannot contain it. Each
+        comparison throws away **half of the remaining candidates**.
+      chips:
+        - {k: "Precondition", v: "array is sorted"}
+        - {k: "Time", v: "O(log n)"}
+        - {k: "Space", v: "O(1) iterative"}
+
+    - type: facts
+      title: "The loop invariant"
+      accent: green
+      body: "Everything the proof of correctness rests on:"
+      items:
+        - "If the target is in the array, it lies in `a[lo..hi]`."
+        - "Every iteration **strictly shrinks** the interval, so the loop terminates."
+        - "The interval is empty when `lo > hi` — the target is absent."
+
+    - type: diagram
+      title: "The algorithm"
+      accent: teal
+      span: 2
+      kind: flow
+      caption: "Each pass halves the search interval — so the number of passes is the number of times n can be halved."
+      spec:
+        gap: 3.8
+        side_w: 0.36
+        steps:
+          - label: "lo ← 0,  hi ← n − 1"
+            accent: teal
+            strong: true
+            sub: "the interval starts as the whole array"
+            side: "Invariant holds trivially at entry"
+          - label: "while lo ≤ hi"
+            accent: ochre
+            sub: "mid ← lo + (hi − lo) / 2"
+            side: "Written this way to avoid integer overflow on lo + hi"
+          - label: "a[mid] = target  →  RETURN mid"
+            accent: green
+            strong: true
+            side: "Found — best case, one comparison"
+          - label: "a[mid] < target → lo ← mid + 1\na[mid] > target → hi ← mid − 1"
+            accent: violet
+            sub: "discard the half that cannot contain the target — mid included"
+            side: "Excluding mid is what guarantees the interval shrinks"
+          - label: "loop ends  →  RETURN not found"
+            accent: red
+            strong: true
+            side: "Interval empty; the invariant proves absence"
+
+    - type: diagram
+      title: "Why it matters at scale"
+      accent: blue
+      span: 2
+      kind: curves
+      caption: "Linear search reads the whole array; binary search reads a number of elements that barely moves as n grows."
+      spec:
+        height: 44
+        legend_w: 30
+        x_range: [0, 1000]
+        y_range: [0, 1000]
+        x_label: "array size n"
+        y_label: "comparisons"
+        x_ticks: [0, 250, 500, 750, 1000]
+        y_ticks: [{v: 10, label: "10"}, {v: 250, label: "250"}, {v: 500, label: "500"}, {v: 1000, label: "1000"}]
+        series:
+          - label: "linear search — O(n)"
+            accent: red
+            width: 0.42
+            points: [[0,0],[250,250],[500,500],[750,750],[1000,1000]]
+          - label: "binary search — O(log n)"
+            accent: green
+            width: 0.45
+            peak_label: "≈ 10 at n = 1000"
+            points: [[0,0],[50,5.6],[125,7],[250,8],[500,9],[750,9.6],[1000,10]]
+
+    - type: worked
+      title: "How many comparisons?"
+      accent: blue
+      given: "A sorted array of n = 1 000 000 elements"
+      formula: "comparisons ≈ ⌊log₂ n⌋ + 1"
+      substitution: "log₂(1 000 000) ≈ 19.93"
+      calculation: "⌊19.93⌋ + 1"
+      result: "20 comparisons, worst case"
+      interpretation: "A linear scan of the same array needs up to 1 000 000 — a factor of 50 000."
+
+    - type: table
+      title: "Cost of the operations around it"
+      accent: teal
+      columns: ["Operation", "Sorted array", "Hash table"]
+      align: ["", "n", "n"]
+      rows:
+        - ["Search", "O(log n)", "O(1) avg"]
+        - ["Insert", "O(n)", "O(1) avg"]
+        - ["Delete", "O(n)", "O(1) avg"]
+        - ["Min / max", "O(1)", "O(n)"]
+        - ["In-order scan", "O(n)", "O(n log n)"]
+
+    - type: mistake
+      title: "Where it goes wrong"
+      accent: red
+      span: 2
+      items:
+        - "**Unsorted input.** The precondition is not checked at runtime — the function silently returns the wrong answer."
+        - "`mid = (lo + hi) / 2` **overflows** for large indices in fixed-width integer types; use `lo + (hi − lo) / 2`."
+        - "Updating `lo ← mid` instead of `mid + 1` leaves the interval unchanged when it has two elements — an **infinite loop**."
+        - "With duplicates, the *first* match is not guaranteed — you need a lower-bound variant."
+
+# ===========================================================================
+- title: "THE INDUSTRIAL {{revolution}}"
+  kicker: "history · Britain, c. 1760 – 1840"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "What changed"
+      accent: teal
+      span: 2
+      term: "The Industrial Revolution"
+      body: >-
+        the transition, beginning in Britain in the later eighteenth century,
+        from an economy of **hand production in households and workshops** to
+        one of ==powered machinery in factories==. Output, urban population
+        and the use of coal all rose together.
+
+    - type: diagram
+      title: "Key inventions"
+      accent: ochre
+      span: 2
+      kind: timeline
+      caption: "Textiles mechanised first, then power, then transport — each step made the next one worth building."
+      spec:
+
+        accent: ochre
+        events:
+          - {at: 0.00, time: "1764", label: "Spinning jenny\nHargreaves", accent: teal}
+          - {at: 0.14, time: "1769", label: "Water frame\nArkwright", accent: green}
+          - {at: 0.28, time: "1769", label: "Separate condenser\npatented by Watt", accent: violet}
+          - {at: 0.46, time: "1779", label: "Spinning mule\nCrompton", accent: teal}
+          - {at: 0.62, time: "1785", label: "Power loom\nCartwright", accent: green}
+          - {at: 0.80, time: "1825", label: "Stockton &\nDarlington railway", accent: ochre}
+          - {at: 1.00, time: "1829", label: "Stephenson's\nRocket", accent: red}
+
+    - type: diagram
+      title: "Why Britain first"
+      accent: violet
+      span: 2
+      kind: hierarchy
+      caption: "No single cause is sufficient — historians argue about weighting, not about the list."
+      spec:
+        root:
+          label: "PRECONDITIONS IN BRITAIN"
+          accent: violet
+        children:
+          - label: "Resources"
+            accent: green
+            items:
+              - "Accessible coal fields"
+              - "Iron ore near the coal"
+              - "Navigable rivers and canals"
+          - label: "Capital and markets"
+            accent: teal
+            items:
+              - "Colonial and Atlantic trade"
+              - "Developed banking and credit"
+              - "Growing domestic demand"
+          - label: "Institutions"
+            accent: ochre
+            items:
+              - "Patent protection from 1624"
+              - "Relatively stable property law"
+              - "Enclosure freed rural labour"
+
+    - type: diagram
+      title: "Before and after"
+      accent: teal
+      span: 2
+      kind: compare
+      spec:
+        vs: "→"
+        left:
+          label: "COTTAGE INDUSTRY"
+          accent: ochre
+          items:
+            - "Work in the home, at the worker's own pace"
+            - "Hand tools; the spinner owned the wheel"
+            - "Family labour, paid by the piece"
+            - "Output limited by hands available"
+        right:
+          label: "FACTORY SYSTEM"
+          accent: teal
+          items:
+            - "Work in a mill, to the clock and the machine"
+            - "Powered machinery owned by the mill owner"
+            - "Waged labour under supervision"
+            - "Output limited by power and capital"
+
+    - type: facts
+      title: "Consequences"
+      accent: red
+      items:
+        - "**Urbanisation** — Manchester grew roughly tenfold across the period."
+        - "**Sanitation lagged** — cholera epidemics from 1831."
+        - "**Child labour** in mills, restricted by the Factory Acts from 1833."
+        - "**Coal consumption** rose steeply as steam replaced water power."
+
+    - type: technical
+      title: "How the period is dated"
+      accent: violet
+      body: >-
+        The dates are a **historians' convention**, not a boundary in the
+        sources. `c. 1760–1840` is the common range; some accounts run to
+        `1850`.
+      items:
+        - "The phrase was popularised in English by **Arnold Toynbee's** lectures in the 1880s — a century after the events."
+        - "Growth was **uneven by region and by trade**: textiles mechanised early, agriculture and building far later."
+
+    - type: takeaway
+      title: "Key takeaway"
+      accent: orange
+      body: >-
+        The decisive change was not any single machine but the ==shift of
+        power, capital and discipline out of the household and into the
+        mill== — which is why the *factory system*, not the steam engine, is
+        the unit historians compare across countries.
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      items:
+        - "Watt did not invent the steam engine — **Newcomen's** engine predates him. Watt's **separate condenser** made it efficient enough to leave the mine."
+        - "Mechanisation of **spinning** came before **weaving**; the resulting yarn surplus is what made the power loom worth building."
+        - "Treat 'the Industrial Revolution' as a **process**, not an event — the dates are conventional, not sharp."

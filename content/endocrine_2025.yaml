@@ -1,0 +1,1217 @@
+# ---------------------------------------------------------------------------
+# Endocrine 2025 — visual revision notebook
+#
+# CONTENT SOURCE FIDELITY (section R): every fact, figure, threshold and dose
+# on these pages is taken from the supplied source document
+# "Indocrine_2025.pdf".  Terminology, numerical values and the author's
+# framing are preserved.  Nothing has been substituted with generic
+# background knowledge, and no external material has been added; where a
+# module reorganises the source (a table, a diagram) it is a re-presentation
+# of the same statements, not new content.
+# ---------------------------------------------------------------------------
+title: Endocrine 2025
+subject: medicine / clinical pharmacy
+columns: 2
+holes: true
+footer: "Endocrine 2025 · revision notebook"
+source_note: "all content from the supplied source: Indocrine_2025.pdf"
+
+style:
+  seed: 20250828
+
+pages:
+
+# ===========================================================================
+- title: "DIABETES — {{glucose control}}"
+  kicker: "endocrine · sheet 1 · normal physiology, definition, epidemiology"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "What diabetes is"
+      accent: teal
+      term: "Diabetes"
+      body: >-
+        a syndrome which has ==hyperglycaemia as its hallmark==, due to an
+        **absolute** lack of insulin (Type 1, formerly insulin dependent
+        diabetes, [[IDDM]]) or a **relative** lack of insulin (Type 2,
+        formerly non-insulin dependent diabetes, [[NIDDM]]).
+      chips:
+        - {k: "Normal glucose", v: "3.5–7 mmol/ml"}
+        - {k: "Type 1", v: "absolute lack"}
+        - {k: "Type 2", v: "relative lack"}
+
+    - type: facts
+      title: "Normal control"
+      accent: green
+      body: "Blood glucose is held at `3.5–7 mmol/ml` by two opposing pancreatic hormones."
+      items:
+        - "[[Insulin]] — produced by the **beta-cells** of the pancreas."
+        - "[[Glucagon]] — produced by the **alpha cells** of the pancreas."
+        - "A rise in glucose stimulates insulin, which removes glucose from blood and stores it as **glycogen** in muscle and liver."
+        - "Insulin also stimulates **synthesis of fat** from adipose tissue, stored as triglyceride."
+        - "A fall in glucose reduces insulin and stimulates glucagon, which **mobilises stored glucose** from liver and adipose tissue."
+
+    - type: diagram
+      title: "Glucose homeostasis"
+      accent: teal
+      span: 2
+      kind: feedback_loop
+      caption: "The two-armed control loop that diabetes breaks — insulin is the only hormone that lowers glucose."
+      spec:
+        centre:
+          label: "BLOOD GLUCOSE"
+          sub: "3.5–7 mmol/ml"
+          note: "the regulated variable — hyperglycaemia is the hallmark of diabetes"
+        arms:
+          - title: "GLUCOSE RISES"
+            accent: green
+            sign: "−"
+            trigger: "Increase in blood glucose"
+            effector: "INSULIN\nbeta-cells"
+            via: "removal from blood · storage as glycogen in muscle + liver · fat synthesis in adipose tissue"
+            effect: "lowers blood glucose"
+          - title: "GLUCOSE FALLS"
+            accent: orange
+            sign: "+"
+            trigger: "Fall in blood glucose"
+            effector: "GLUCAGON\nalpha cells"
+            via: "insulin secretion reduced · stored glucose mobilised from liver + adipose tissue"
+            effect: "raises blood glucose"
+
+    - type: stats
+      title: "Diabetes in the UK"
+      accent: blue
+      items:
+        - {v: "1.4M", l: "have a diagnosis of diabetes"}
+        - {v: "~3%", l: "of the population"}
+        - {v: "1M+", l: "more thought to be undiagnosed"}
+      footnote: "Diabetes becomes more common with age: Type 2 is present in `5–10%` of over-65s."
+
+    - type: facts
+      title: "Who gets it"
+      accent: ochre
+      items:
+        - "**Men** are one and a half times as likely to be diagnosed as women — *except* women who are overweight."
+        - "[[IDDM]] is very rare under **9 months** of age; peak incidence of onset is `5–15 years`."
+        - "It is the **second commonest chronic illness of childhood**."
+        - "About `30%` of IDDM cases present in patients **older than 30 years**."
+
+    - type: clinical
+      title: "Late-onset Type 1"
+      accent: violet
+      body: >-
+        In older patients symptoms can be **less dramatic** and may initially be
+        thought to be NIDDM. These patients are usually **non-obese**, have a
+        history of **weight loss**, and respond **poorly to oral hypoglycaemic
+        agents**.
+
+    - type: table
+      title: "Primary vs secondary"
+      accent: ochre
+      body: "The **majority** of cases are *primary* diabetes."
+      columns: ["Group", "Cause"]
+      rows:
+        - ["Primary", "The majority of all cases of diabetes"]
+        - ["Secondary", "Pancreatic carcinoma"]
+        - ["", "Liver disease, particularly cirrhosis"]
+        - ["", "Gestational diabetes mellitus"]
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      items:
+        - "Insulin is the **only** hormone that lowers blood glucose; glucagon, and the loss of insulin, both raise it."
+        - "Type 1 = **absolute** lack. Type 2 = **relative** lack. This single distinction drives every difference in presentation and treatment."
+        - "`30%` of IDDM presents over the age of 30 — a non-obese adult with weight loss who fails oral agents is Type 1 until proven otherwise."
+
+# ===========================================================================
+- title: "TYPE 1 vs TYPE 2 — {{causes & presentation}}"
+  kicker: "endocrine · sheet 2 · aetiology, defining features, symptoms"
+  accent: orange
+  modules:
+
+    - type: mechanism
+      title: "Cause of Type 1 (IDDM)"
+      accent: violet
+      body: >-
+        An **autoimmune disorder** characterised by pancreatic
+        ==beta-cell destruction==. Dietary factors may also be involved:
+        absorption of **cow's milk proteins** through the immature gut
+        (i.e. at 3 months of age) may set off an immune response leading to
+        destruction of the beta-cells.
+
+    - type: mechanism
+      title: "Cause of Type 2 (NIDDM)"
+      accent: violet
+      body: >-
+        Described as a ==lifestyle disease==, developing in people who are
+        **genetically predisposed**, where environmental factors — nutrition
+        (particularly obesity) and exercise — modulate expression of the
+        diabetic phenotype.
+      items:
+        - "A **family history of Type 2** remains the *strongest single risk factor*."
+
+    - type: diagram
+      title: "Three abnormalities in Type 2"
+      accent: teal
+      span: 2
+      kind: hierarchy
+      caption: "A receptor defect — fewer receptors, or reduced receptor sensitivity — reduces glucose uptake and causes hyperglycaemia."
+      spec:
+        root:
+          label: "TYPE 2 DIABETES"
+          sub: "three main abnormalities"
+          accent: violet
+        children:
+          - label: "Peripheral insulin resistance"
+            accent: orange
+            items:
+              - "Defect of the insulin receptor mechanism"
+              - "Decreased NUMBER of receptors, or"
+              - "Decreased SENSITIVITY of receptors"
+              - "Glucose uptake falls → hyperglycaemia"
+          - label: "Increased hepatic glucose production"
+            accent: red
+            items:
+              - "Liver continues to release glucose"
+              - "Adds to the circulating load"
+          - label: "Reduced pancreatic insulin secretion"
+            accent: teal
+            items:
+              - "Relative — not absolute — lack of insulin"
+              - "Distinguishes Type 2 from Type 1"
+
+    - type: diagram
+      title: "Defining features"
+      accent: teal
+      span: 2
+      kind: compare
+      spec:
+        vs: "vs"
+        left:
+          label: "TYPE 1"
+          accent: red
+          items:
+            - "Sudden onset"
+            - "Severe symptoms, including ketoacidosis — coma in some"
+            - "Recent weight loss"
+            - "Onset more acute; many are admitted to hospital"
+        right:
+          label: "TYPE 2"
+          accent: teal
+          items:
+            - "Gradual onset"
+            - "May be no symptoms"
+            - "Often no weight loss"
+            - "Usually obese"
+            - "Not ketotic"
+            - "Slower onset of symptoms"
+
+    - type: facts
+      title: "Signs and symptoms"
+      accent: red
+      items:
+        - "Increased urine output ([[polyuria]]) and excessive thirst ([[polydipsia]])."
+        - "**Weight loss and weakness** due to tissue breakdown."
+        - "**Blurred vision.**"
+
+    - type: mistake
+      title: "Why Type 2 is missed"
+      accent: red
+      body: >-
+        Patients may attribute vague symptoms such as **dry mouth** and
+        **poor concentration** to increasing age, not to diabetes. Only as
+        glucose values rise do polyuria, thirst or weight loss become
+        apparent and cause patients to seek help.
+
+    - type: mechanism
+      title: "The receptor defect"
+      accent: violet
+      body: >-
+        A defect of the **insulin receptor mechanism** — either a *decreased
+        number* of receptors or *decreased sensitivity* of the receptors —
+        reduces glucose uptake, causing ==hyperglycaemia==.
+      chips:
+        - {k: "Fewer receptors", v: "↓ uptake"}
+        - {k: "Less sensitive", v: "↓ uptake"}
+        - {k: "Net effect", v: "hyperglycaemia"}
+
+    - type: facts
+      title: "Where the symptoms come from"
+      accent: teal
+      items:
+        - "**Polyuria** — glucose spills into urine and drags water with it."
+        - "**Polydipsia** — thirst follows the urinary water loss."
+        - "**Weight loss and weakness** — tissue breakdown, because glucose cannot be used as fuel."
+        - "**Blurred vision** — an early and often-ignored complaint."
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      span: 2
+      items:
+        - "The **strongest single risk factor** for Type 2 is a *family history of Type 2* — not obesity, though obesity modulates how the phenotype is expressed."
+        - "Type 1 is **autoimmune beta-cell destruction**; Type 2 is a *triad* — peripheral insulin resistance, increased hepatic glucose production, and reduced pancreatic insulin secretion."
+        - "**Ketosis separates the two**: Type 1 presents with ketoacidosis, Type 2 is not ketotic."
+
+# ===========================================================================
+- title: "DIAGNOSIS & {{acute complications}}"
+  kicker: "endocrine · sheet 3 · diagnostic criteria, DKA, non-ketotic hyperglycaemia"
+  accent: orange
+  modules:
+
+    - type: diagram
+      title: "How the diagnosis is made"
+      accent: teal
+      span: 2
+      kind: flow
+      caption: "Diagnosis is usually made by one of these two routes."
+      spec:
+        gap: 4.2
+        side_w: 0.40
+        steps:
+          - label: "ROUTE 1 — CLASSIC SYMPTOMS PRESENT"
+            accent: teal
+            strong: true
+            sub: "plus any ONE qualifying plasma glucose result"
+            side: "Symptoms: polyuria, polydipsia, weight loss, blurred vision"
+          - label: "ROUTE 2 — ASYMPTOMATIC PATIENT"
+            accent: ochre
+            strong: true
+            sub: "TWO venous samples from any of the categories below, on TWO DIFFERENT DAYS"
+            side: "Without symptoms a single abnormal result is not enough"
+
+    - type: table
+      title: "Qualifying results"
+      accent: green
+      span: 2
+      columns: ["Test", "Threshold", "Condition"]
+      align: ["", "n", ""]
+      rows:
+        - ["Fasting plasma glucose", "> 7.0 mmol/ml", "Fasted sample"]
+        - ["Random plasma glucose", "> 11.1 mmol/ml", "Any time"]
+        - ["Oral glucose tolerance test (OGTT)", "> 11.1 mmol/ml", "2 hours after 75 g anhydrous glucose"]
+
+    - type: definition
+      title: "Diabetic ketoacidosis"
+      accent: red
+      term: "DKA"
+      body: >-
+        an **acute, major, life-threatening** complication of diabetes,
+        characterised by ==hyperglycaemia, ketoacidosis and ketonuria==.
+      chips:
+        - {k: "Initial presentation in", v: "up to 16% of Type 1"}
+        - {k: "Mortality", v: "2–15%"}
+
+    - type: facts
+      title: "What precipitates DKA"
+      accent: red
+      body: "It is a **fairly common but serious** event, precipitated by:"
+      items:
+        - "**Infection** — e.g. a urinary tract infection"
+        - "**Acute illness**"
+        - "**Trauma**"
+        - "**Missed insulin doses**"
+
+    - type: diagram
+      title: "Mechanism of DKA"
+      accent: violet
+      span: 2
+      kind: flow
+      caption: "Lack of insulin means glucose cannot be utilised as an energy source — so the liver burns fat instead."
+      spec:
+        gap: 3.8
+        side_w: 0.34
+        steps:
+          - label: "Absolute or relative INSULIN DEFICIENCY"
+            accent: red
+            strong: true
+            side: "The initiating defect"
+          - label: "Glucose cannot enter cells for utilisation as metabolic fuel"
+            accent: violet
+            side: "Glucose accumulates in blood → hyperglycaemia"
+          - label: "Liver rapidly breaks down FAT into KETONES to employ as a fuel source"
+            accent: violet
+            side: "The body's emergency fuel switch"
+          - label: "Overproduction of ketones — they accumulate in blood and urine"
+            accent: orange
+            side: "Ketonuria"
+          - label: "BLOOD TURNS ACIDIC — ketoacidosis"
+            accent: red
+            strong: true
+            side: "Breath smells sweet, of acetone"
+
+    - type: facts
+      title: "Symptoms of DKA"
+      accent: red
+      marker: cross
+      items:
+        - "Thirst, polyuria, dehydration"
+        - "Vomiting, hyperventilation, weakness"
+        - "**Ketosis** — breath smells sweet, of acetone"
+        - "Tachycardia, hypotension"
+        - "Drowsiness, confusion, **coma**"
+
+    - type: mechanism
+      title: "Non-ketotic hyperglycaemia"
+      accent: violet
+      body: >-
+        Occurs in patients with **Type 2 diabetes**. There is ==no production
+        of ketones== because there *is* sufficient insulin present to prevent
+        excessive lipolysis — but not enough for complete utilisation of
+        glucose, hence hyperglycaemia.
+      items:
+        - "As there are no ketones, there is **no vomiting** and **no metabolic acidosis**."
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      span: 2
+      items:
+        - "The diagnostic thresholds are **fasting > `7.0 mmol/ml`** and **random or 2-hour OGTT > `11.1 mmol/ml`**. With symptoms, one result is enough; without symptoms, you need **two samples on two different days**."
+        - "DKA vs non-ketotic hyperglycaemia is a question about *how much insulin is left*: enough to suppress lipolysis (no ketones, Type 2) or not (ketones, Type 1)."
+
+# ===========================================================================
+- title: "CHRONIC {{complications}}"
+  kicker: "endocrine · sheet 4 · hypoglycaemia, retinopathy, nephropathy, neuropathy"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "The complications"
+      accent: teal
+      span: 2
+      body: >-
+        They include **hypoglycaemia** and problems relating to hyperglycaemia
+        — e.g. *cystitis*, *skin infections* and *gingivitis* — but the most
+        important are the ==vascular complications== (nephropathy and
+        cardiovascular disease).
+      items:
+        - "These take an average of `15–20 years` to develop in **Type 1**."
+        - "They may be encountered **more quickly** in Type 2 — indeed **may be present at diagnosis**."
+
+    - type: facts
+      title: "Hypoglycaemia — causes"
+      accent: red
+      body: "The **most common** complication in diabetics. In most cases the patient or carer should be able to initiate treatment."
+      items:
+        - "**Insufficient food intake** — skipping meals, vomiting, diarrhoea"
+        - "**Excessive exercise**"
+        - "**Hypoglycaemic drugs**"
+        - "**Too much insulin**"
+
+    - type: facts
+      title: "Hypoglycaemia — symptoms"
+      accent: red
+      items:
+        - "Nausea, hunger"
+        - "Tachycardia, **paraesthesia in the fingers or lips**, excessive sweating, muscle tremor"
+        - "Ataxia, blurred vision, headache, confusion, agitation, **coma and convulsions**"
+
+    - type: diagram
+      title: "Treating hypoglycaemia"
+      accent: green
+      span: 2
+      kind: flow
+      caption: "Rapid treatment is essential to avoid permanent cerebral damage."
+      spec:
+        gap: 4.0
+        side_w: 0.38
+        steps:
+          - label: "ORAL GLUCOSE"
+            accent: green
+            strong: true
+            sub: "initial treatment"
+            side: "Patient or carer can usually start treatment themselves"
+          - label: "INTRAVENOUS GLUCOSE — 50%, 20–50 ml"
+            accent: ochre
+            sub: "in severe cases"
+            side: "If the patient cannot swallow safely"
+          - label: "GLUCAGON 1 mg by DEEP IM INJECTION into the buttock"
+            accent: orange
+            sub: "if IV not available or cannot be given"
+            side: "Effect within minutes — it increases plasma glucose by mobilising glycogen stored in the liver"
+
+    - type: clinical
+      title: "Retinopathy"
+      accent: violet
+      body: >-
+        Diabetic retinopathy is the ==commonest cause of blindness==. In Type 1
+        it starts after **10 or more years**; in Type 2 it may be **present at
+        diagnosis**.
+      chips:
+        - {k: "Have retinopathy", v: "~30% of all diabetics"}
+        - {k: "Laser, if detected early", v: "prevents 70% going blind"}
+        - {k: "Eye checks", v: "yearly"}
+
+    - type: clinical
+      title: "Nephropathy"
+      accent: violet
+      body: "Diabetic nephropathy affects:"
+      items:
+        - "About **one in every three** individuals with **Type 1** diabetes."
+        - "About **one in every 20** with **Type 2**."
+        - "All people with diabetes should have urine tested **at least annually** for **proteinuria** and, if negative, for **microalbuminuria**."
+
+    - type: clinical
+      title: "Neuropathy"
+      accent: violet
+      body: >-
+        Damage to **sensory, motor and autonomic** nerves, commonly occurring
+        as a result of chronic hyperglycaemia.
+      items:
+        - "Impaired nerve function found in `60%` of diabetics; causes problems for **about a third** of them."
+        - "Commonest manifestation: **reduced sensation in the feet** — an important factor in foot ulceration."
+        - "Peripheral neuropathy also impairs **sweating**, leading to dry, cracked skin that may fail to heal."
+        - "If ulceration is due to **peripheral vascular disease**, amputation is often needed."
+
+    - type: takeaway
+      title: "Key takeaway — the feet"
+      accent: orange
+      span: 2
+      body: >-
+        It is essential that each diabetic patient is **individually educated
+        about foot care**, as ==most diabetic foot problems are entirely
+        preventable== with good foot care and regular screening.
+
+# ===========================================================================
+- title: "TREATMENT — {{insulin}}"
+  kicker: "endocrine · sheet 5 · aims of treatment, insulin types, administration"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "Aim of treatment"
+      accent: teal
+      span: 2
+      body: >-
+        To achieve the ==best possible control of plasma glucose without
+        inducing hypoglycaemia==, in order to prevent both the **micro-** and
+        **macrovascular** complications of diabetes.
+      chips:
+        - {k: "Diet", v: "the cornerstone — both types"}
+        - {k: "Type 1", v: "match energy + insulin intake"}
+        - {k: "Type 2", v: "many controlled by diet alone"}
+        - {k: "Exercise", v: "lowers glucose + increases insulin action"}
+
+    - type: diagram
+      title: "Insulin action profiles"
+      accent: blue
+      span: 2
+      kind: curves
+      caption: "Schematic curves drawn from the onset / peak / duration figures given in the source — the shapes show why the classes are combined."
+      spec:
+        height: 56
+        legend_w: 32
+        x_range: [0, 30]
+        y_range: [0, 1.05]
+        x_label: "hours after injection"
+        y_label: "insulin action"
+        x_ticks: [0, 2, 4, 6, 8, 12, 16, 20, 24, 30]
+        y_ticks: []
+        series:
+          - label: "Rapid acting"
+            peak_label: "peak 60–90 min"
+            accent: red
+            width: 0.42
+            points: [[0,0],[0.25,0.10],[0.9,0.72],[1.3,1.0],[2,0.72],[3,0.34],[4,0]]
+          - label: "Short acting"
+            peak_label: "peak 2–3 h"
+            accent: orange
+            width: 0.42
+            points: [[0,0],[0.6,0.06],[1.5,0.55],[2.5,0.88],[3,0.8],[4,0.5],[5,0.24],[6,0]]
+          - label: "Intermediate (NPH / Lente)"
+            peak_label: "peak 4–12 h"
+            accent: green
+            width: 0.42
+            points: [[0,0],[3.2,0.06],[5,0.36],[7,0.6],[9,0.68],[12,0.62],[15,0.4],[18,0.16],[20,0]]
+          - label: "Long acting"
+            peak_label: "peak 12–16 h"
+            accent: violet
+            width: 0.42
+            points: [[0,0],[6.5,0.05],[9,0.22],[12,0.38],[14,0.44],[18,0.42],[22,0.34],[26,0.2],[30,0]]
+
+    - type: table
+      title: "Insulin therapy — the four classes"
+      accent: blue
+      span: 2
+      columns: ["Class", "Onset", "Peak", "Duration", "How it is used"]
+      align: ["", "n", "n", "n", ""]
+      rows:
+        - ["Rapid acting", "15 min", "60–90 min", "2–4 h", "Before a meal, to cover the glucose rise from eating. Used **with** a longer-acting insulin."]
+        - ["Short acting", "30–60 min", "2–3 h", "4–6 h", "About 30 min before a meal, to cover the glucose rise from eating. Used **with** a longer-acting insulin."]
+        - ["Intermediate (NPH / Lente)", "3–4 h", "4–12 h", "16–20 h", "Covers glucose rises when rapid-acting insulins stop working. Often combined with rapid or short acting; usually **twice a day**."]
+        - ["Long acting", "6–8 h", "12–16 h", "20–30 h", "Lowers glucose when rapid-acting insulins stop working. Combined when needed; taken **once or twice a day**."]
+
+    - type: worked
+      title: "Starting dose"
+      accent: blue
+      given: "A patient of 70 kg, newly started on insulin"
+      formula: "dose = 0.5 units / kg / day"
+      substitution: "0.5 × 70"
+      result: "35 units per day"
+      interpretation: "The dose is then adjusted according to the patient's blood glucose results."
+
+    - type: process
+      title: "Giving the injection"
+      accent: ochre
+      items:
+        - "Give **30–45 minutes before food** where possible."
+        - "Inject **subcutaneously** — front of the thighs, lower abdominal wall, upper arms."
+        - "**Rotate sites daily** to prevent fibrosis, which interferes with insulin absorption."
+
+    - type: warning
+      title: "What speeds absorption"
+      accent: red
+      items:
+        - "**Hot baths and showers** increase the absorption rate."
+        - "**Leg exercise** increases the absorption rate from the thigh."
+
+    - type: facts
+      title: "Where insulin comes from"
+      accent: violet
+      body: >-
+        Insulin is categorised by **how it is derived** and **how quickly it
+        acts** — from rapid to long acting, from animal insulin through to
+        analogue insulins.
+      items:
+        - "**Animal insulin** was the first type given to humans, derived from *cows and pigs*."
+        - "Until the **1980s** it was the only treatment for insulin dependent diabetes."
+        - "It has largely been replaced by **human insulin** and **human analogue insulin**."
+
+    - type: facts
+      title: "Insulin devices"
+      accent: teal
+      marker: tick
+      items:
+        - "Vial + syringe"
+        - "Penfill cartridge + injection device"
+        - "Flexpen (ready filled)"
+
+# ===========================================================================
+- title: "TYPE 2 — {{drug treatment}}"
+  kicker: "endocrine · sheet 6 · lifestyle, escalation, oral agents and injectables"
+  accent: orange
+  modules:
+
+    - type: facts
+      title: "Components of treatment"
+      accent: teal
+      body: "Treatment varies from patient to patient; the aims are met by a **combination** of:"
+      marker: tick
+      items:
+        - "Dietary adjustment"
+        - "Weight loss in the obese"
+        - "Adequate physical activity"
+        - "Oral antidiabetic drugs"
+        - "Patient education"
+
+    - type: facts
+      title: "Dietary advice"
+      accent: green
+      body: >-
+        Unless a patient presents with severe symptoms, **diet and lifestyle
+        modification alone** should be tried for at least `3 months`. Diet
+        alone can control up to ==30%== of patients with Type 2.
+      items:
+        - "Reduce energy intake if obese — to `1000–1500 kCal` per day."
+        - "Eat **regular meals**; include a wide variety of foods."
+        - "**Limit** intake of sugar and sweet foods."
+        - "**Reduce** total fat intake."
+
+    - type: diagram
+      title: "Drug escalation"
+      accent: ochre
+      span: 2
+      kind: flow
+      caption: "Drugs in dual therapy are introduced stepwise, checking tolerability and effectiveness of each drug."
+      spec:
+        gap: 4.0
+        side_w: 0.40
+        steps:
+          - label: "DIET AND LIFESTYLE MODIFICATION ALONE"
+            accent: green
+            strong: true
+            sub: "at least 3 months, unless severe symptoms"
+            side: "Continue dietary recommendations even after drugs are started"
+          - label: "STANDARD-RELEASE METFORMIN"
+            accent: teal
+            strong: true
+            sub: "the initial drug treatment for adults with Type 2"
+            side: "If metformin is contraindicated or not tolerated, go straight to dual therapy"
+          - label: "ADD a second agent — DUAL THERAPY"
+            accent: ochre
+            sub: "sulfonylurea · DPP-4 inhibitor · GLP-1 agonist · SGLT inhibitor"
+            side: "Added when metformin has not continued to control HbA1c"
+          - label: "TRIPLE THERAPY"
+            accent: orange
+            sub: "if dual therapy has not succeeded"
+            side: "Below the person's individually agreed HbA1c threshold"
+          - label: "INSULIN-BASED TREATMENT"
+            accent: red
+            strong: true
+            sub: "if there is still no control"
+            side: "After 10 to 20 years, almost all patients with Type 2 will need insulin"
+
+    - type: mechanism
+      title: "Metformin (biguanide)"
+      accent: violet
+      body: >-
+        Main effect: a ==reduction in hepatic gluconeogenesis==. It also
+        **reduces intestinal glucose absorption** and **enhances insulin
+        sensitivity**.
+      items:
+        - "Treatment of choice in **obese** patients, but *equally effective in non-obese*."
+        - "Nausea, vomiting, flatulence and diarrhoea in up to `20%` of patients."
+        - "Reduce these by starting low — e.g. `500 mg` daily with or after food — and increasing gradually."
+
+    - type: mechanism
+      title: "Sulphonylureas"
+      accent: violet
+      body: >-
+        Main effect: **increasing the sensitivity of the pancreas to glucose**,
+        thus increasing insulin output. Secondary effects: increased muscular
+        uptake and reduced hepatic synthesis of glucose.
+      items:
+        - "**Primary failure** — `25–30%` of patients may not respond."
+        - "**Secondary failure** — a further `5–10%` lose responsiveness *annually*."
+        - "Second generation agents (glimepiride) are more potent, but there is **no evidence of clinically important differences in efficacy** within the group."
+        - "Take `30 minutes before meals` for maximum benefit."
+
+    - type: mistake
+      title: "Switching sulphonylurea"
+      accent: red
+      body: >-
+        It is unlikely that **if one sulphonylurea fails** to control
+        hyperglycaemia, ==another will do so for any length of time==. Second
+        generation agents are more potent, but there is *no evidence of
+        clinically important differences in efficacy* within the group.
+
+    - type: clinical
+      title: "Emphasise this"
+      accent: violet
+      body: >-
+        It is important to emphasise to patients the need to ==continue with
+        dietary recommendations== **even if they are started on oral
+        medication**.
+
+    - type: warning
+      title: "Sulphonylurea side-effects"
+      accent: red
+      body: "Most side effects are **shared by all** sulphonylureas."
+      items:
+        - "**Hypoglycaemia** — common, especially in the *elderly* and those with *renal or hepatic impairment*."
+        - "**Weight gain** — can limit their usefulness in obese diabetic patients."
+        - "**GI disturbances** — usually only on initiation, and should gradually wear off."
+        - "**Rash** in about `3%`, usually in the first `6–8 weeks`."
+        - "**Raised LFTs.**"
+
+# ===========================================================================
+- title: "INCRETINS, SGLT & {{monitoring}}"
+  kicker: "endocrine · sheet 7 · newer agents, targets of control, HbA1c"
+  accent: orange
+  modules:
+
+    - type: table
+      title: "The newer agents"
+      accent: teal
+      span: 2
+      columns: ["Class", "Example", "Mechanism", "Notes"]
+      rows:
+        - ["GLP-1 agonist", "Victoza", "Stimulates **glucose-dependent** insulin release from the pancreatic islets", "**Injectable.** Also slows gastric emptying, inhibits inappropriate post-meal glucagon release, reduces food intake"]
+        - ["DPP-4 inhibitor (gliptins)", "Sitagliptin, saxagliptin, linagliptin", "Increases incretin levels (GLP-1 and GIP) → inhibits glucagon release → increases insulin secretion, decreases gastric emptying and blood glucose", "FDA approved. Adverse effects usually mild and transient: nasopharyngitis, headache, dizziness, arthralgia, nausea, constipation"]
+        - ["SGLT1 inhibitor", "—", "Delays and reduces glucose absorption in the **small intestine**", "Improves post-meal control; useful where declining renal function makes SGLT2 inhibition less effective"]
+        - ["SGLT2 inhibitor", "Canagliflozin", "Reduces **renal tubular glucose reabsorption**", "Lowers glucose **without stimulating insulin release**. Favourable effects on blood pressure and weight"]
+
+    - type: clinical
+      title: "Note on glibenclamide"
+      accent: violet
+      body: >-
+        In patients **without renal or hepatic impairment**, glibenclamide may
+        be used. They should be taken `30 minutes before meals` for maximum
+        benefit.
+
+    - type: facts
+      title: "The newer agents at a glance"
+      accent: teal
+      marker: tick
+      items:
+        - "**GLP-1 agonists are injectable** — the others here are oral."
+        - "DPP-4 inhibitors work **indirectly**, by raising incretin levels."
+        - "SGLT2 inhibitors lower glucose ==without stimulating insulin release==."
+        - "SGLT2 also has favourable effects on **blood pressure and weight**."
+
+    - type: diagram
+      title: "Fasting blood glucose — what is good control?"
+      accent: green
+      span: 2
+      kind: scale
+      caption: "Fasting blood glucose bands, with the units exactly as given in the source document."
+      spec:
+        bar_h: 9
+        height: 27
+        axis_label: "fasting blood glucose (mg/ml, as stated in the source)"
+        bands:
+          - {label: "GOOD", range: "< 108", accent: green, weight: 1}
+          - {label: "ACCEPTABLE", range: "108–126", accent: teal, weight: 1}
+          - {label: "POOR", range: "127–144", accent: ochre, weight: 1}
+          - {label: "VERY POOR", range: "> 144", accent: red, weight: 1}
+
+    - type: definition
+      title: "The A1C test (HbA1c)"
+      accent: blue
+      span: 2
+      term: "A1C"
+      body: >-
+        a blood test giving a person's **average blood glucose over the past
+        3 months** — also called haemoglobin A1c, HbA1c. It is the
+        ==primary test used for diabetes management==, reported as a
+        percentage: the higher the percentage, the higher the blood glucose
+        levels have been.
+      items:
+        - "RBCs are composed of **haemoglobin**. Glucose sticks to haemoglobin to make a **glycosylated haemoglobin molecule (HbA1c)**."
+        - "The more glucose present in the blood, the more HbA1c will be present."
+        - "RBCs are constantly forming and dying — they live for about `3 months`, so the test reflects the *average over that window*."
+
+    - type: diagram
+      title: "A1C levels"
+      accent: blue
+      span: 2
+      kind: scale
+      caption: "The treatment target for most people with diabetes is an A1C of ≤ 7%. Higher levels may need a more intensive medication plan."
+      spec:
+        bar_h: 9
+        height: 30
+        axis_label: "HbA1c (%)"
+        marker: {at: 0.44, label: "target ≤ 7%", accent: violet}
+        bands:
+          - {label: "NORMAL", range: "below 5.7%", accent: green, weight: 1.1, note: "no diabetes"}
+          - {label: "PREDIABETES", range: "5.7 – 6.4%", accent: ochre, weight: 1, note: "at risk"}
+          - {label: "DIABETES", range: "6.5% or above", accent: red, weight: 1.3, note: "diagnostic level"}
+
+# ===========================================================================
+- title: "THE CONTROL {{algorithm}}"
+  kicker: "endocrine · sheet 8 · choosing treatment by level of control"
+  accent: orange
+  modules:
+
+    - type: diagram
+      title: "Initial blood glucose control"
+      accent: teal
+      span: 2
+      kind: triage
+      caption: "Redrawn in the notebook's visual language from the treatment figure in the source document."
+      spec:
+        height: 72
+        base: "NUTRITION AND EXERCISE (always important)"
+        base_accent: teal
+        bands:
+          - label: "GOOD"
+            accent: green
+            rows: ["A1c  < 8.0%", "Fasting  < 180", "Random  < 250"]
+            no_action: "diet and exercise alone"
+          - label: "FAIR"
+            accent: ochre
+            rows: ["A1c  8.0 – 9.5%", "Fasting  180–250", "Random  250–300"]
+            action: "Oral agents, Incretins"
+          - label: "POOR"
+            accent: red
+            rows: ["A1c  > 9.5%", "Fasting  > 250", "Random  > 300"]
+            action: "Insulin"
+        footnotes:
+          - "FBG = fasting plasma blood glucose after not eating for at least 8 hours (normal: 70–100 mg/dL)"
+          - "RBG = random plasma blood glucose, any time after last meal (normal: 100–150 mg/dL)"
+
+    - type: facts
+      title: "When to start insulin in Type 2"
+      accent: red
+      body: >-
+        Although treatment starts with oral medication and lifestyle changes,
+        **most people with Type 2 eventually need insulin**.
+      items:
+        - "Significant hyperglycaemia in a **symptomatic** patient — *\u201cthe need for insulin may be short-term\u201d*."
+        - "Patients on **multiple diabetic medications** with uncontrolled diabetes."
+        - "**Uncontrolled diabetes in pregnancy.**"
+        - "*\u201cAfter 10 to 20 years, almost all patients with type 2 diabetes will need insulin.\u201d*"
+
+    - type: takeaway
+      title: "Key takeaway"
+      accent: orange
+      body: >-
+        Control is not judged by a single number: the algorithm reads
+        **A1c, fasting and random glucose together**, and every band sits on
+        the same foundation of ==nutrition and exercise==.
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      items:
+        - "*\u201cThe American Association of Clinical Endocrinologists recommends starting a person with type 2 diabetes on insulin if their A1C is above `9%` and they have symptoms.\u201d*"
+        - "Blood sugar control is **one of the most important parts** of Type 2 management."
+        - "A1C reflects **3 months** — because that is how long a red cell lives."
+
+    - type: clinical
+      title: "A1C in pregnancy"
+      accent: violet
+      items:
+        - "The A1C test may be used at the **first visit during pregnancy**, to see if women with risk factors had **undiagnosed diabetes before becoming pregnant**."
+        - "**OGTT** is used to test for diabetes that develops *during* pregnancy."
+        - "After delivery, women who had **gestational diabetes** should be tested for **persistent diabetes**."
+
+    - type: stats
+      title: "Numbers to remember"
+      accent: blue
+      items:
+        - {v: "≤ 7%", l: "A1C treatment target for most patients"}
+        - {v: "> 9%", l: "A1C + symptoms → start insulin (AACE)"}
+        - {v: "10–20 y", l: "until almost all Type 2 need insulin"}
+
+    - type: summary
+      title: "Summary — the Type 2 pathway"
+      accent: green
+      span: 2
+      items:
+        - "**Diet and lifestyle alone** for at least 3 months — controls up to `30%` of patients."
+        - "**Metformin** is the initial drug treatment; reduces hepatic gluconeogenesis."
+        - "**Dual therapy** adds a sulfonylurea, DPP-4 inhibitor, GLP-1 agonist or SGLT inhibitor — stepwise, checking tolerability and effectiveness of each drug."
+        - "**Triple therapy** if dual therapy does not succeed."
+        - "**Insulin** if there is still no control — and after `10–20 years`, almost all Type 2 patients will need it."
+
+# ===========================================================================
+- title: "THYROID — {{physiology & TFTs}}"
+  kicker: "endocrine · sheet 9 · thyroid hormones, the HPT axis, function tests"
+  accent: orange
+  modules:
+
+    - type: stats
+      title: "How common"
+      accent: blue
+      items:
+        - {v: "2%", l: "of women have hypothyroidism"}
+        - {v: "0.13%", l: "of men have hypothyroidism"}
+        - {v: "1–2%", l: "UK prevalence of hyperthyroidism"}
+      footnote: "Most patients with hypothyroidism present between the ages of `30 and 60`; it is more common in those with a **family history of thyroid disease**. Hyperthyroidism has a **large female preponderance**."
+
+    - type: definition
+      title: "The two hormones"
+      accent: teal
+      body: >-
+        The thyroid gland secretes two **iodine-containing** hormones:
+        [[thyroxine (T4)]] and [[tri-iodothyronine (T3)]], produced by the
+        **follicular cells** in response to **thyroid-stimulating hormone
+        (TSH)** from the *anterior pituitary*.
+      items:
+        - "**T4 is the main hormone secreted** — but it is essentially a ==prohormone==."
+        - "**Most of the effects are due to T3.**"
+
+    - type: diagram
+      title: "The hypothalamic–pituitary–thyroid axis"
+      accent: teal
+      span: 2
+      kind: feedback_loop
+      caption: "TSH from the anterior pituitary drives the follicular cells; the hormones produced feed back on it."
+      spec:
+        height: 66
+        centre:
+          label: "THYROID HORMONES"
+          sub: "T4 (main) → T3 (active)"
+          note: "> 99% protein bound, mainly to thyroxine-binding globulin (TBG) — only the free portion is active"
+        arms:
+          - title: "TOO LITTLE HORMONE"
+            accent: teal
+            sign: "+"
+            trigger: "Free T4 / T3 falls"
+            effector: "ANTERIOR PITUITARY\nTSH rises"
+            via: "TSH stimulates the follicular cells of the thyroid gland"
+            effect: "more T4 and T3 produced"
+          - title: "TOO MUCH HORMONE"
+            accent: red
+            sign: "−"
+            trigger: "Free T4 / T3 rises"
+            effector: "ANTERIOR PITUITARY\nTSH suppressed"
+            via: "less drive to the follicular cells of the thyroid gland"
+            effect: "less T4 and T3 produced"
+
+    - type: mechanism
+      title: "What thyroid hormones do"
+      accent: violet
+      items:
+        - "Increase the **basal metabolic rate** — raising *oxygen consumption* and *heat production*."
+        - "Have a role in **growth and development**."
+        - "**Nearly all body tissues are affected**, so an alteration in secretion affects the activity of *all body systems* — hence the wide-ranging symptoms."
+
+    - type: technical
+      title: "Protein binding"
+      accent: blue
+      body: >-
+        `> 99%` of **both** hormones are protein bound — mainly to
+        **thyroxine-binding globulin (TBG)**.
+      items:
+        - "==Only the free portion is active.=="
+        - "So a change in the amount of TBG alters the measured result without necessarily changing thyroid status."
+        - "This is why **clinical features must always be taken into account** alongside the numbers."
+
+    - type: table
+      title: "Reading the TFTs"
+      accent: blue
+      span: 2
+      columns: ["Picture", "T4", "TSH", "Interpretation"]
+      align: ["", "n", "n", ""]
+      rows:
+        - ["Primary thyroid failure", "low", "high", "A fall in serum total or free T4 **together with** a rise in serum TSH is **diagnostic**"]
+        - ["\"Sub-clinical\" hypothyroidism", "normal", "high", "Check TFTs **yearly** — the *majority go on to develop clinical hypothyroidism*"]
+        - ["Hyperthyroidism", "high", "suppressed", "Raised T4 **and** T3 with suppressed TSH"]
+
+    - type: warning
+      title: "Never test in isolation"
+      accent: red
+      span: 2
+      body: >-
+        Because the presenting symptoms are so **varied and non-specific**,
+        biochemical confirmation is necessary — but these tests should
+        ==never be used alone== to decide whether treatment is necessary.
+        **Clinical features should always be taken into account.**
+      items:
+        - "Symptoms of hypothyroidism but **normal TFTs** → thyroxine can be *tried* to see if symptoms improve, as long as TFTs and clinical symptoms are monitored to check for over-treatment (i.e. hyperthyroidism)."
+        - "**Abnormal TFTs without any signs or symptoms** → close monitoring, but **no treatment**."
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      span: 2
+      items:
+        - "Changes in **thyroid binding globulin (TBG)** would be expected to alter the results — because only the *free* portion of T3 and T4 is active."
+        - "T4 is the main hormone secreted, but T3 does the work: **T4 is essentially a prohormone**."
+
+# ===========================================================================
+- title: "HYPOTHYROIDISM"
+  kicker: "endocrine · sheet 10 · causes, clinical features, thyroxine replacement"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "The diagnosis"
+      accent: teal
+      span: 2
+      body: >-
+        A fall in serum **total or free T4** together with a **rise in serum
+        TSH** is diagnostic of ==primary thyroid failure==. An elevated TSH
+        with a *normal* T4 is termed **“sub-clinical” hypothyroidism** —
+        such patients should have their TFTs checked **yearly**, as the
+        majority go on to develop clinical hypothyroidism.
+
+    - type: diagram
+      title: "Causes"
+      accent: violet
+      span: 2
+      kind: hierarchy
+      caption: "More than 90% of cases are due to one of the first three."
+      spec:
+        root:
+          label: "HYPOTHYROIDISM"
+          sub: "> 90% of cases from the first group"
+          accent: violet
+        children:
+          - label: "The main causes (> 90%)"
+            accent: red
+            items:
+              - "Autoimmune hypothyroidism"
+              - "Idiopathic atrophic hypothyroidism"
+              - "Post-surgery, radioactive iodine and anti-thyroid drugs"
+          - label: "Other causes"
+            accent: ochre
+            items:
+              - "Congenital"
+              - "Iodine deficiency"
+          - label: "Drugs"
+            accent: teal
+            items:
+              - "Lithium"
+              - "Amiodarone"
+
+    - type: facts
+      title: "Clinical features — most common"
+      accent: red
+      body: "Onset may be with **non-specific symptoms** and, occasionally, *no symptoms*."
+      items:
+        - "**Tiredness**"
+        - "**Cold intolerance**"
+        - "Dryness and coarsening of **skin and hair**, subcutaneous swelling"
+        - "**Hoarseness**"
+        - "**Weight gain**"
+        - "**Hyperlipidaemia**"
+
+    - type: facts
+      title: "Clinical features — others"
+      accent: ochre
+      items:
+        - "Anaemia"
+        - "Depression"
+        - "Constipation"
+        - "Bradycardia"
+        - "Infertility"
+
+    - type: diagram
+      title: "Thyroxine replacement"
+      accent: green
+      span: 2
+      kind: flow
+      caption: "Hormone replacement, usually with T4 (thyroxine), is the treatment for hypothyroidism."
+      spec:
+        gap: 4.0
+        side_w: 0.40
+        steps:
+          - label: "START THYROXINE 50 µ DAILY"
+            accent: green
+            strong: true
+            sub: "the usual initial dose; the range is 25–200 µ daily"
+            side: "Take at least HALF AN HOUR BEFORE BREAKFAST — food stops the drug being absorbed properly"
+          - label: "INCREASE BY 50 µ EVERY 3–4 WEEKS"
+            accent: teal
+            side: "Symptomatic improvement is seen within 2–3 weeks"
+          - label: "CHECK TSH AFTER 6 WEEKS OF THERAPY"
+            accent: ochre
+            strong: true
+            sub: "it may be 6 weeks before TSH levels respond fully"
+            side: "Adjust the dose by increments of 25–50 µ"
+          - label: "ONCE TSH AND T4 ARE NORMAL AND THE PATIENT IS SYMPTOM-FREE"
+            accent: blue
+            sub: "assess adequacy of continuing treatment by ANNUAL TFTs"
+            side: "Most patients receiving thyroxine require LIFE-LONG treatment"
+
+    - type: exam
+      title: "Exam point"
+      accent: ochre
+      span: 2
+      items:
+        - "The two time constants that matter: **symptoms improve in `2–3 weeks`**, but **TSH takes `6 weeks`** to respond fully — so do not re-check TSH earlier and do not chase the dose on symptoms alone."
+        - "Thyroxine is absorbed poorly with food: **at least half an hour before breakfast**."
+
+# ===========================================================================
+- title: "HYPERTHYROIDISM"
+  kicker: "endocrine · sheet 11 · causes, features, and the three treatment options"
+  accent: orange
+  modules:
+
+    - type: definition
+      title: "The diagnosis"
+      accent: teal
+      term: "Hyperthyroidism"
+      body: >-
+        ==Raised T4 and T3 with suppressed TSH.== As only the **free portion**
+        of T3 and T4 is active, changes in the amount of **thyroid binding
+        globulin (TBG)** would be expected to alter the results.
+
+    - type: facts
+      title: "Causes"
+      accent: violet
+      body: "More than `90%` of cases are due to either:"
+      items:
+        - "**Grave's disease** — an autoimmune disease."
+        - "**Toxic multinodular goitre** — swelling of the thyroid."
+        - "*Other causes:* thyroiditis (due to viral infection); exogenous iodine and iodine-containing drugs e.g. **amiodarone**; excessive T3 and T4 ingestion."
+
+    - type: diagram
+      title: "Clinical features"
+      accent: red
+      span: 2
+      kind: compare
+      spec:
+        vs: "+"
+        left:
+          label: "MOST COMMONLY"
+          accent: red
+          items:
+            - "Weight loss — but with a normal appetite"
+            - "Sweating; heat intolerance"
+            - "Increased rate and depth of respiration"
+            - "Diarrhoea"
+            - "Fatigue, generalised muscle weakness and muscle tremor"
+            - "Palpitations; sinus tachycardia or atrial fibrillation; angina; heart failure"
+        right:
+          label: "OTHERS"
+          accent: ochre
+          items:
+            - "Agitation"
+            - "Insomnia"
+            - "Infertility"
+            - "The presenting features in mild cases may MIMIC AN ANXIETY STATE"
+
+    - type: facts
+      title: "Three treatment options"
+      accent: teal
+      marker: tick
+      items:
+        - "**Anti-thyroid drugs** — e.g. carbimazole"
+        - "**Radioactive iodine**"
+        - "**Surgery**"
+
+    - type: mechanism
+      title: "Carbimazole"
+      accent: violet
+      body: >-
+        The plasma half-life of carbimazole is relatively **short (`6–10
+        hours`)**, but its **biological effect is much longer** — which is what
+        allows a ==once daily dose== to be given.
+
+    - type: diagram
+      title: "The 'block and replace' regimen"
+      accent: green
+      span: 2
+      kind: flow
+      caption: "Favoured because it reduces the high relapse rate of the previous regimen."
+      spec:
+        gap: 3.1
+        side_w: 0.34
+        steps:
+          - label: "START CARBIMAZOLE 40 mg DAILY"
+            accent: green
+            strong: true
+            sub: "high dose, to 'block' the activity of the thyroid"
+            side: "Blocking, plus replacement therapy with thyroxine"
+          - label: "MEASURE T4 AFTER 4 WEEKS"
+            accent: teal
+            side: "The decision point"
+          - label: "IF NORMAL OR LOW → start thyroxine 100 mcg daily"
+            accent: green
+            side: "The 'replace' half of the regimen"
+          - label: "IF HIGH → repeat at week 6. If STILL high → increase carbimazole to 60 mg daily"
+            accent: ochre
+            sub: "when T4 is normal, start thyroxine 100 mcg daily"
+            side: "Block harder before replacing"
+          - label: "MEASURE T4 4 WEEKS AFTER STARTING THYROXINE"
+            accent: blue
+            strong: true
+            sub: "adjust the dose to keep T4 in the normal range"
+            side: "Then maintain"
+
+    - type: clinical
+      title: "Radioactive iodine (¹³¹I)"
+      accent: violet
+      body: >-
+        Given as a **tasteless liquid**. It causes ==necrosis of the overactive
+        thyroid gland== without significant local or systemic effects, and with
+        minimal radiation hazard.
+      items:
+        - "Treatment of choice for **toxic nodular hyperthyroidism** if the goitre is *not large*."
+        - "And for **Grave's disease**, especially on relapse after medical treatment or subtotal thyroidectomy."
+        - "About **two-thirds** are cured by a *single dose*; further doses at intervals of `2–4 months`."
+
+    - type: warning
+      title: "Radioiodine — cautions"
+      accent: red
+      items:
+        - "**Contraindicated during pregnancy.**"
+        - "Women who have received treatment should **not get pregnant for `3 months`** afterwards."
+        - "All patients need **annual TFTs**: after `20 years`, `50%` will have developed **hypothyroidism**."
+
+    - type: clinical
+      title: "Surgery — sub-total thyroidectomy"
+      accent: violet
+      span: 2
+      body: >-
+        It is **rarely first choice**. Beta-blockers — usually **propranolol
+        `20 mg tds`** — may provide *temporary symptomatic relief* prior to
+        surgery, or until antithyroid drugs take their effect (about
+        `4 weeks`).
