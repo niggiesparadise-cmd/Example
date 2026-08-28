@@ -1,0 +1,342 @@
+/* ==========================================================================
+   ACADEMIC VISUAL NOTEBOOK ENGINE
+   A subject-agnostic design system for dense, printable revision sheets.
+
+   Architecture
+     .page          one fixed A4 sheet. Paints its own full-bleed graph paper,
+                    edge to edge, so nothing can leave a white frame.
+     .bed           the 12-column module bed inside the page.
+     .m             an information module. Always a translucent wash so the
+                    graph paper reads straight through it.
+
+   The engine carries NO subject knowledge. Content supplies the modules.
+   ========================================================================== */
+
+/* ── 1. TOKENS ─────────────────────────────────────────────────────────── */
+:root{
+  color-scheme: light;
+
+  /* type roles */
+  --f-display:"Caveat Brush","Bradley Hand","Segoe Print",cursive;
+  --f-hand:"Kalam","Segoe Print","Comic Sans MS",cursive;
+  --f-sans:"IBM Plex Sans","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-serif:"IBM Plex Serif",Georgia,"Times New Roman",serif;
+
+  /* paper — warm ivory, never white */
+  --paper:#F2EAD7;
+  --paper-deep:#EDE3CC;
+  --desk:#D9CDB2;
+  --rule:rgba(158,58,44,.34);
+
+  /* graph paper */
+  --grid-min:rgba(150,128,92,.22);
+  --grid-maj:rgba(150,128,92,.34);
+  --sq:18.9px;          /* 5 mm at 96 dpi */
+  --sq5:94.5px;         /* major every 25 mm */
+
+  /* ink */
+  --ink:#332F28;
+  --ink-2:#5B5548;
+  --ink-3:#8A8069;
+  --hair:rgba(120,105,75,.34);
+
+  /* semantic hues — muted, never neon */
+  --teal:#1B6E6B;  --green:#4C7434; --ochre:#A07414; --orange:#BC6119;
+  --rust:#AC4820;  --violet:#5D4390;--red:#9C2E25;
+
+  /* washes: 6–10 % so the grid always survives */
+  --w-teal:rgba(27,110,107,.085);   --w-green:rgba(76,116,52,.085);
+  --w-ochre:rgba(160,116,20,.10);   --w-orange:rgba(188,97,25,.085);
+  --w-rust:rgba(172,72,32,.08);     --w-violet:rgba(93,67,144,.075);
+  --w-red:rgba(156,46,37,.075);     --w-flat:rgba(120,105,75,.05);
+
+  /* borders may be firmer than fills */
+  --b-teal:rgba(27,110,107,.44);    --b-green:rgba(76,116,52,.44);
+  --b-ochre:rgba(160,116,20,.46);   --b-orange:rgba(188,97,25,.44);
+  --b-rust:rgba(172,72,32,.42);     --b-violet:rgba(93,67,144,.40);
+  --b-red:rgba(156,46,37,.40);      --b-flat:rgba(120,105,75,.30);
+
+  /* chart marks — validated for CVD against this paper */
+  --c1:#00918A; --c2:#A87A18; --c3:#63479C;
+  --c-neg:#00918A; --c-pos:#B0492A;
+
+  /* highlighter marks */
+  --mk-teal:rgba(27,110,107,.20);   --mk-green:rgba(76,116,52,.22);
+  --mk-rust:rgba(172,72,32,.20);    --mk-ochre:rgba(160,116,20,.26);
+  --mk-violet:rgba(93,67,144,.20);
+}
+
+/* ── 2. PAGE ───────────────────────────────────────────────────────────── */
+*{box-sizing:border-box}
+html{background:var(--desk)}
+body{
+  margin:0;background:var(--desk);color:var(--ink);
+  font-family:var(--f-sans);font-size:12px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;padding:14px 8px 40px;
+}
+/* the sheet stack, not the document, absorbs any sideways scroll */
+.sheets{
+  width:100%;overflow-x:auto;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+}
+
+.page{
+  position:relative;flex:0 0 auto;
+  width:210mm;height:297mm;overflow:hidden;
+  padding:12mm 11mm 8mm 19mm;
+  /* the graph paper is a property OF THE PAGE, so it reaches all four edges
+     and every module floats on top of it */
+  background-color:var(--paper);
+  background-image:
+    linear-gradient(90deg,transparent 0 15mm,var(--rule) 15mm,var(--rule) calc(15mm + 1px),transparent calc(15mm + 1px)),
+    linear-gradient(var(--grid-min) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-min) 1px,transparent 1px),
+    linear-gradient(var(--grid-maj) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-maj) 1px,transparent 1px);
+  background-size:100% 100%,var(--sq) var(--sq),var(--sq) var(--sq),var(--sq5) var(--sq5),var(--sq5) var(--sq5);
+  background-position:0 0,-1px -1px,-1px -1px,-1px -1px,-1px -1px;
+  box-shadow:0 1px 2px rgba(80,64,36,.22),0 16px 34px -20px rgba(80,64,36,.5);
+  display:flex;flex-direction:column;
+}
+.page__head{
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  border-bottom:1px dashed var(--hair);padding-bottom:4px;margin-bottom:8px;flex:0 0 auto;
+}
+.page__foot{
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  border-top:1px dashed var(--hair);padding-top:4px;margin-top:auto;flex:0 0 auto;
+  font-family:var(--f-hand);font-size:11px;color:var(--ink-3);
+}
+.eyebrow{font-size:8.4px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-3)}
+
+/* ── 3. MODULE BED ─────────────────────────────────────────────────────── */
+.bed{
+  /* min-height:0 keeps the bed inside the sheet so overflow is detectable
+     rather than silently pushing content off the page */
+  flex:1 1 auto;min-height:0;display:grid;grid-template-columns:repeat(12,1fr);
+  gap:5px;align-content:start;
+}
+.bed--fill{align-content:stretch}
+.c1{grid-column:span 1}   .c2{grid-column:span 2}   .c3{grid-column:span 3}
+.c4{grid-column:span 4}   .c5{grid-column:span 5}   .c6{grid-column:span 6}
+.c7{grid-column:span 7}   .c8{grid-column:span 8}   .c9{grid-column:span 9}
+.c10{grid-column:span 10} .c11{grid-column:span 11} .c12{grid-column:span 12}
+.stack{display:flex;flex-direction:column;gap:6px;min-width:0}
+.stack--grow{flex:1 1 auto}
+.row{display:flex;gap:6px;min-width:0}
+.push{margin-top:auto}
+
+/* ── 4. MODULES — always translucent ───────────────────────────────────── */
+.m{
+  position:relative;min-width:0;
+  padding:6px 9px 7px;
+  background:var(--w-flat);
+  border:1px solid var(--b-flat);
+  border-radius:11px 7px 12px 8px / 8px 12px 7px 11px;
+}
+.m--teal{background:var(--w-teal);border-color:var(--b-teal)}
+.m--green{background:var(--w-green);border-color:var(--b-green)}
+.m--ochre{background:var(--w-ochre);border-color:var(--b-ochre)}
+.m--orange{background:var(--w-orange);border-color:var(--b-orange)}
+.m--rust{background:var(--w-rust);border-color:var(--b-rust)}
+.m--violet{background:var(--w-violet);border-color:var(--b-violet)}
+.m--red{background:var(--w-red);border-color:var(--b-red)}
+.m--bare{background:none;border:none;padding:2px 0 0}
+.m--tiltl{transform:rotate(-.28deg)} .m--tiltr{transform:rotate(.24deg)}
+
+.m__tag{
+  display:block;font-size:8.2px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;margin-bottom:4px;color:var(--ink-3);
+}
+.m--teal>.m__tag{color:var(--teal)}     .m--green>.m__tag{color:var(--green)}
+.m--ochre>.m__tag{color:var(--ochre)}   .m--orange>.m__tag{color:var(--orange)}
+.m--rust>.m__tag{color:var(--rust)}     .m--violet>.m__tag{color:var(--violet)}
+.m--red>.m__tag{color:var(--red)}
+
+/* ── 5. TYPOGRAPHY ─────────────────────────────────────────────────────── */
+.t1{font-family:var(--f-display);font-weight:400;font-size:40px;line-height:.96;
+    color:var(--teal);margin:0;text-wrap:balance}
+.t2{font-family:var(--f-display);font-weight:400;font-size:21px;line-height:1.05;
+    margin:0 0 1px;color:var(--teal);text-wrap:balance}
+.t2--green{color:var(--green)} .t2--ochre{color:var(--ochre)}
+.t2--violet{color:var(--violet)} .t2--rust{color:var(--rust)}
+.t2--red{color:var(--red)} .t2--orange{color:var(--orange)}
+.t3{font-family:var(--f-hand);font-weight:700;font-size:13px;line-height:1.25;
+    margin:0 0 3px;color:var(--ink)}
+.ul{display:block;width:100%;max-width:190px;height:6px;margin-bottom:2px;
+    fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;opacity:.7}
+.p{margin:0;font-size:11.4px;line-height:1.46;color:var(--ink-2)}
+.p+.p{margin-top:3px}
+.p b,.p strong{color:var(--ink);font-weight:600}
+.hand{font-family:var(--f-hand);font-size:12.6px;line-height:1.36;color:var(--ink-2);margin:0}
+.hand--sm{font-size:11.4px;line-height:1.3}
+.lead{font-size:12.2px;line-height:1.45;color:var(--ink);margin:0}
+.note{font-family:var(--f-hand);font-size:11.4px;line-height:1.28;color:var(--ink-3);margin:3px 0 0;display:block}
+.k-teal{color:var(--teal);font-weight:600}   .k-green{color:var(--green);font-weight:600}
+.k-ochre{color:var(--ochre);font-weight:600} .k-rust{color:var(--rust);font-weight:600}
+.k-violet{color:var(--violet);font-weight:600} .k-red{color:var(--red);font-weight:600}
+.k-orange{color:var(--orange);font-weight:600}
+.mk{background:linear-gradient(180deg,transparent 50%,var(--mk-ochre) 50%,var(--mk-ochre) 93%,transparent 93%);
+    padding:0 .12em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.mk--teal{background:linear-gradient(180deg,transparent 50%,var(--mk-teal) 50%,var(--mk-teal) 93%,transparent 93%)}
+sub,sup{font-size:.68em;line-height:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── 6. LISTS ──────────────────────────────────────────────────────────── */
+.li{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.li>li{position:relative;padding-left:12px;font-size:11.2px;line-height:1.38;color:var(--ink-2)}
+.li>li::before{content:"";position:absolute;left:1px;top:.52em;width:4.5px;height:4.5px;
+  border-radius:50% 40% 55% 45%;background:var(--ink-3);opacity:.65}
+.li--teal>li::before{background:var(--teal);opacity:.8}
+.li--green>li::before{background:var(--green);opacity:.8}
+.li--violet>li::before{background:var(--violet);opacity:.8}
+.li--rust>li::before{background:var(--rust);opacity:.8}
+.li--red>li::before{background:var(--red);opacity:.8}
+.li>li b{color:var(--ink);font-weight:600}
+.li--up>li::before,.li--down>li::before{border-radius:0;background:none;
+  width:0;height:0;top:.42em;left:1px}
+.li--up>li::before{border-left:3.6px solid transparent;border-right:3.6px solid transparent;
+  border-bottom:5px solid var(--green)}
+.li--down>li::before{border-left:3.6px solid transparent;border-right:3.6px solid transparent;
+  border-top:5px solid var(--red)}
+
+/* ── 7. TABLES — translucent, grid shows through ───────────────────────── */
+table{border-collapse:collapse;width:100%;font-size:10.2px;background:none}
+thead th{
+  background:rgba(27,110,107,.20);color:var(--ink);
+  font-family:var(--f-sans);font-weight:600;font-size:8.2px;letter-spacing:.10em;
+  text-transform:uppercase;text-align:left;padding:4px 6px;white-space:nowrap;
+  border-bottom:1px solid var(--b-teal);
+}
+thead.th--red th{background:rgba(156,46,37,.18);border-bottom-color:var(--b-red)}
+thead.th--violet th{background:rgba(93,67,144,.18);border-bottom-color:var(--b-violet)}
+thead.th--ochre th{background:rgba(160,116,20,.20);border-bottom-color:var(--b-ochre)}
+tbody td{padding:3.5px 6px;border-top:1px solid var(--hair);vertical-align:top;
+  color:var(--ink-2);line-height:1.34}
+tbody tr:nth-child(even){background:rgba(120,105,75,.045)}
+td b{color:var(--ink);font-weight:600}
+td.n{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap;font-family:var(--f-serif)}
+td.st{font-family:var(--f-display);font-size:15px;color:var(--teal);width:16px;text-align:center;padding-top:2px}
+
+/* ── 8. EQUATIONS ──────────────────────────────────────────────────────── */
+.eq{
+  font-family:var(--f-serif);font-size:11.6px;line-height:1.6;color:var(--ink);
+  background:rgba(120,105,75,.05);border:1px solid var(--b-flat);
+  border-left:3px solid var(--teal);border-radius:2px;padding:5px 8px;
+}
+.eq--ochre{border-left-color:var(--ochre)} .eq--rust{border-left-color:var(--rust)}
+.eq--violet{border-left-color:var(--violet)}
+.eq em{font-style:italic}
+.eq__k{display:block;font-family:var(--f-sans);font-size:8px;font-weight:600;
+  letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px}
+
+/* ── 9. WORKED CALCULATION ─────────────────────────────────────────────── */
+.calc{display:flex;flex-direction:column}
+.calc__r{display:grid;grid-template-columns:62px 1fr;gap:7px;padding:2.2px 0;
+  border-bottom:1px dashed var(--hair)}
+.calc__r:last-child{border-bottom:0}
+.calc__k{font-size:8.2px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);padding-top:2px}
+.calc__v{font-family:var(--f-serif);font-size:11.4px;line-height:1.42;color:var(--ink-2)}
+.calc__v b{color:var(--ink)}
+.calc__v--out{font-size:14px;font-weight:600;color:var(--ochre)}
+
+/* ── 10. STAT TILES ────────────────────────────────────────────────────── */
+.tiles{display:grid;gap:5px;grid-template-columns:repeat(auto-fit,minmax(52px,1fr))}
+.tile{text-align:center;padding:5px 3px 4px;background:var(--w-flat);
+  border:1px solid var(--b-flat);border-radius:9px 6px 10px 7px / 6px 10px 5px 9px}
+.tile__v{font-family:var(--f-display);font-size:21px;line-height:1;color:var(--teal)}
+.tile__l{font-size:7.8px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);
+  margin-top:2px;font-weight:600}
+.tile--ochre{background:var(--w-ochre);border-color:var(--b-ochre)}
+.tile--ochre .tile__v{color:var(--ochre)}
+.tile--rust{background:var(--w-rust);border-color:var(--b-rust)}
+.tile--rust .tile__v{color:var(--rust)}
+.tile--violet{background:var(--w-violet);border-color:var(--b-violet)}
+.tile--violet .tile__v{color:var(--violet)}
+
+/* ── 11. FIGURES & DIAGRAMS ────────────────────────────────────────────── */
+.fig{margin:0;display:flex;flex-direction:column;min-width:0}
+.fig svg{display:block;width:100%;height:auto}
+.fig--mol svg{max-width:106px;margin:0 auto}
+.fig--mol .fig__cap{font-size:9.4px;line-height:1.16}
+.fig__cap{font-family:var(--f-hand);font-size:10.6px;line-height:1.3;color:var(--ink-3);
+  margin-top:3px;text-align:center}
+.d-bond path{stroke:var(--ink-2);stroke-width:1.3;fill:none;stroke-linecap:round}
+.d-t{font-family:var(--f-sans);font-size:12px;fill:var(--ink);text-anchor:middle}
+.d-sm{font-family:var(--f-hand);font-size:9.5px;fill:var(--ink-3);text-anchor:middle}
+.d-name{font-family:var(--f-sans);font-size:15px;font-weight:500}
+.d-sub{font-family:var(--f-serif);font-size:11px;font-style:italic}
+.d-enz{font-family:var(--f-sans);font-size:13px;font-weight:500}
+.d-out{font-family:var(--f-serif);font-size:12.5px}
+.d-hand{font-family:var(--f-hand);font-size:13px}
+.d-num{font-family:var(--f-sans);font-size:13px;font-weight:600}
+.d-disp{font-family:var(--f-display);font-size:38px}
+.d-micro{font-family:var(--f-sans);font-size:9.5px;font-weight:600;letter-spacing:.13em}
+.hl-teal{fill:var(--mk-teal)} .hl-green{fill:var(--mk-green)} .hl-rust{fill:var(--mk-rust)}
+.hl-ochre{fill:var(--mk-ochre)} .hl-violet{fill:var(--mk-violet)}
+
+/* ── 12. CHART PRIMITIVES ──────────────────────────────────────────────── */
+.ch-t{font-family:var(--f-sans);font-size:calc(10.5px * var(--fs,1));font-weight:600;fill:var(--ink)}
+.ch-u{font-family:var(--f-sans);font-size:calc(8.4px * var(--fs,1));letter-spacing:.11em;text-transform:uppercase;fill:var(--ink-3)}
+.ax-grid path{stroke:var(--hair);stroke-width:1;fill:none}
+.ax-zero path{stroke:var(--ink-3);stroke-width:1.3;fill:none}
+.ax-t{font-family:var(--f-serif);font-size:calc(9.6px * var(--fs,1));fill:var(--ink-2);font-variant-numeric:tabular-nums}
+.ax-n{font-family:var(--f-display);font-size:calc(14px * var(--fs,1));fill:var(--teal)}
+.ax-a{font-family:var(--f-sans);font-size:calc(8.8px * var(--fs,1));fill:var(--ink-2);letter-spacing:.03em}
+.bar{fill:var(--c-neg)} .bar.pos{fill:var(--c-pos)} .bar.zero{fill:var(--ink-3)}
+.bar-lab{font-family:var(--f-serif);font-size:calc(10px * var(--fs,1));fill:var(--ink-2);text-anchor:middle;font-variant-numeric:tabular-nums}
+.cum-line{fill:none;stroke:var(--c1);stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+.cum-dot{fill:var(--c1);stroke:var(--paper);stroke-width:1.6}
+.cum-end{font-family:var(--f-serif);font-size:calc(10.5px * var(--fs,1));fill:var(--ink);text-anchor:middle;font-weight:600}
+.cum-start{font-family:var(--f-sans);font-size:calc(8.8px * var(--fs,1));fill:var(--ink-3)}
+.lg-t{font-family:var(--f-sans);font-size:calc(9.2px * var(--fs,1));fill:var(--ink-2)}
+.sw.neg{fill:var(--c-neg)} .sw.pos{fill:var(--c-pos)}
+.sw.s1{fill:var(--c1)} .sw.s2{fill:var(--c2)} .sw.s3{fill:var(--c3)}
+.seg.s1{fill:var(--c1)} .seg.s2{fill:var(--c2)} .seg.s3{fill:var(--c3)}
+.seg-val{font-family:var(--f-serif);font-size:calc(11px * var(--fs,1));font-weight:600;fill:var(--ink);
+  text-anchor:middle;font-variant-numeric:tabular-nums}
+.row-lab{font-family:var(--f-sans);font-size:calc(9px * var(--fs,1));font-weight:600;letter-spacing:.09em;
+  text-transform:uppercase;fill:var(--ink-3)}
+.e-tick{stroke:var(--ink-3);stroke-width:1}
+.e-dot{fill:var(--ink-3);stroke:var(--paper);stroke-width:1.2}
+.e-dot.ochre{fill:var(--c2)} .e-dot.rust{fill:var(--c-pos)} .e-dot.teal{fill:var(--c1)}
+.e-name{font-family:var(--f-sans);font-size:calc(10.2px * var(--fs,1));fill:var(--ink-2)}
+.e-val{font-family:var(--f-serif);font-size:calc(10.2px * var(--fs,1));fill:var(--ink);font-variant-numeric:tabular-nums}
+.e-arrow{stroke:var(--ink-3);stroke-width:1.1;fill:none;stroke-dasharray:2.5 5}
+.brk{fill:none;stroke-width:1.3}
+.brk.ochre{stroke:var(--c2)} .brk.rust{stroke:var(--c-pos)}
+.brk-h{font-family:var(--f-sans);font-size:calc(10.2px * var(--fs,1));font-weight:600}
+.brk-h.ochre{fill:var(--c2)} .brk-h.rust{fill:var(--c-pos)}
+.brk-t{font-family:var(--f-serif);font-size:calc(10.2px * var(--fs,1));fill:var(--ink-2)}
+.brk-t.strong{fill:var(--ink);font-weight:600}
+
+/* ── 13. CHIP FLOW ─────────────────────────────────────────────────────── */
+.flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.chip{font-size:10.6px;font-weight:500;color:var(--ink);background:var(--w-teal);
+  border:1px solid var(--b-teal);border-radius:9px 6px 10px 7px / 6px 10px 5px 9px;
+  padding:3px 7px;white-space:nowrap}
+.chip small{display:block;font-size:8.4px;color:var(--ink-3);font-weight:600;letter-spacing:.05em}
+.chip--ochre{background:var(--w-ochre);border-color:var(--b-ochre)}
+.chip--rust{background:var(--w-rust);border-color:var(--b-rust)}
+.pill{font-family:var(--f-serif);font-size:10.4px;font-weight:500;background:var(--w-ochre);
+  color:var(--ochre);border:1px solid var(--b-ochre);border-radius:20px;padding:1px 7px;white-space:nowrap}
+.pill--rust{background:var(--w-rust);color:var(--rust);border-color:var(--b-rust)}
+.arw{flex:0 0 auto;width:22px;height:11px;stroke:var(--ink-3);stroke-width:1.4;fill:none;stroke-linecap:round}
+.arw--rust{stroke:var(--rust)}
+
+/* ── 14. PRINT — the page IS the sheet, 1:1, no reflow ─────────────────── */
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:none;margin:0;padding:0;display:block}
+  .sheets{display:block;overflow:visible;width:auto;gap:0}
+  .page{margin:0;box-shadow:none;break-after:page;page-break-after:always}
+  .page:last-of-type{break-after:auto;page-break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+/* ── 15. SCREEN — scale the sheet down on narrow viewports ─────────────── */
+@media screen and (max-width:840px){
+  body{padding:8px 4px 24px}
+  .sheets{align-items:flex-start;gap:10px}
+}
