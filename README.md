@@ -13,7 +13,40 @@ npm install
 npm run dev     # http://localhost:3000
 ```
 
-Other scripts: `npm run build`, `npm start`, `npm run lint`, `npm run typecheck`.
+Other scripts: `npm run build`, `npm run lint`, `npm run typecheck`.
+
+## Deploying
+
+The app is configured for **static export** — `npm run build` writes a plain
+static site to `out/`, no Node server required:
+
+```bash
+npm run build      # -> out/
+npm run preview    # serve out/ locally to check it
+```
+
+Every route prerenders (there are no server actions, route handlers or dynamic
+rendering), so `out/` is the whole app as HTML, CSS and JS. Upload it to any
+static host — Netlify, Vercel, Cloudflare Pages, GitHub Pages, S3, or a plain
+web server:
+
+| Host | What to give it |
+|---|---|
+| Netlify / Cloudflare Pages | build `npm run build`, publish directory `out` |
+| Vercel | detected automatically |
+| GitHub Pages | push `out/` to the Pages branch (see `basePath` below) |
+| S3 / nginx / Apache | copy `out/` to the document root |
+
+`trailingSlash` is on, so routes are written as `courses/index.html` rather than
+`courses.html` — directory indexes are the one URL shape every static host
+serves correctly.
+
+**Serving from a subdirectory** (a GitHub Pages project site, say) needs a
+`basePath` in `next.config.ts`:
+
+```ts
+basePath: "/study-dashboard",
+```
 
 ## What's built
 
