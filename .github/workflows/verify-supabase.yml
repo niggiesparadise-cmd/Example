@@ -1,0 +1,128 @@
+name: Verify Supabase connection
+
+# Manual only. This performs real writes against the configured project —
+# it signs up an account and inserts a row — so it should never fire on a push.
+on:
+  workflow_dispatch:
+
+# Read-only: this workflow builds nothing and publishes nothing.
+permissions:
+  contents: read
+
+# Two runs writing to the same project at once would interleave their test rows.
+concurrency:
+  group: verify-supabase
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify Supabase connection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # Node 22 — the version the project is developed against and the same one
+      # the Android workflow pins. `cache: npm` keys off the committed lockfile.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # `npm ci` so the lockfile is authoritative. @supabase/supabase-js is a
+      # runtime dependency, which is all the verification script needs.
+      - name: Install npm dependencies
+        run: npm ci
+
+      # Fail before doing anything else if the project is not configured.
+      # The values are compared, never printed: `vars` are NOT masked by GitHub
+      # the way `secrets` are, so echoing one would put it in the public log.
+      - name: Check the required repository variables
+        shell: bash
+        env:
+          SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          missing=0
+
+          if [ -z "${SUPABASE_URL}" ]; then
+            echo "::error::Repository variable NEXT_PUBLIC_SUPABASE_URL is not set. Add it under Settings → Secrets and variables → Actions → Variables."
+            missing=1
+          fi
+
+          if [ -z "${SUPABASE_KEY}" ]; then
+            echo "::error::Repository variable NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not set. Add it under Settings → Secrets and variables → Actions → Variables."
+            missing=1
+          fi
+
+          # A secret key here would bypass Row Level Security, so refuse it
+          # outright rather than produce a verification result that means nothing.
+          case "${SUPABASE_KEY}" in
+            *service_role*|sb_secret_*)
+              echo "::error::That key looks like a service-role/secret key. Use the publishable key — a secret key bypasses RLS and must never reach CI or the client."
+              missing=1
+              ;;
+          esac
+
+          if [ "${missing}" -ne 0 ]; then
+            exit 1
+          fi
+
+          echo "Both repository variables are present."
+          echo "Project: ${SUPABASE_URL}"
+
+      # Runs the committed script unchanged — no CI-only test path, no mocks.
+      #
+      # The pipe into `tee` would otherwise hide the script's exit status behind
+      # `tee`'s, so it is read from PIPESTATUS[0] and handed to the next step,
+      # which is the step that actually decides pass or fail.
+      - name: Run the verification
+        id: verify
+        shell: bash
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          # Redact the key from the log even though it is a publishable value,
+          # so an unexpected stack trace cannot leak it.
+          echo "::add-mask::${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}"
+
+          set +e
+          npm run verify:supabase 2>&1 | tee verification.log
+          status="${PIPESTATUS[0]}"
+          set -e
+
+          echo "script_exit=${status}" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      # The script exits 0 in one partial case: when email confirmation is on it
+      # reports steps 1–2, then stops before it can test writes or RLS. A green
+      # tick there would claim more than was actually verified, so completion is
+      # asserted on the script's own success sentinel rather than its exit code.
+      - name: Confirm every step ran
+        shell: bash
+        env:
+          SCRIPT_EXIT: ${{ steps.verify.outputs.script_exit }}
+        run: |
+          {
+            echo "## Supabase verification"
+            echo ""
+            echo '```'
+            cat verification.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if grep -q "All checks passed" verification.log; then
+            echo "All eight checks ran and passed (script exit ${SCRIPT_EXIT})."
+            exit 0
+          fi
+
+          if grep -q "Email confirmation is ON" verification.log; then
+            echo "::error::Partially verified. Sign-up succeeded, but email confirmation is enabled so there was no session to test the write path, the profile trigger or RLS with. Turn off Authentication → Providers → Email → Confirm email and re-run, or confirm the generated address."
+            exit 1
+          fi
+
+          echo "::error::Verification did not complete (script exit ${SCRIPT_EXIT}). See the output above for the failing step."
+          exit 1
