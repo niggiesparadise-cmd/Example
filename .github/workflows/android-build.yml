@@ -43,17 +43,22 @@ jobs:
       # HTML/CSS/JS with no server.
       # Supabase credentials are inlined at build time, so they must be present
       # here or the APK ships an app that cannot reach a backend. Add them as
-      # repository variables (Settings → Secrets and variables → Actions):
-      # NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. Both are
-      # publishable values — the anon key is protected by Row Level Security —
-      # so `vars` is appropriate; neither belongs in `secrets`.
+      # repository variables (Settings → Secrets and variables → Actions →
+      # Variables). Both are publishable values — the key is protected by Row
+      # Level Security — so `vars` is correct; neither belongs in `secrets`, and
+      # the service-role key must never appear here at all.
+      #
+      # Set the key under whichever name matches your dashboard; the app reads
+      # PUBLISHABLE_KEY first and falls back to ANON_KEY.
       - name: Build the Next.js static export
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: |
-          if [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ]; then
-            echo "::warning::NEXT_PUBLIC_SUPABASE_URL is not set. The APK will build, but the app will show a configuration error instead of signing in."
+          if [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ] || \
+             { [ -z "${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" ] && [ -z "${NEXT_PUBLIC_SUPABASE_ANON_KEY}" ]; }; then
+            echo "::warning::Supabase credentials are missing. The APK will build, but the app will show a configuration screen instead of a login form. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY as repository variables."
           fi
           npm run build
 

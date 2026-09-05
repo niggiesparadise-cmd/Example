@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const configError = isSupabaseConfigured
     ? runtimeError
     : "This build has no Supabase credentials. Set NEXT_PUBLIC_SUPABASE_URL and " +
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY and rebuild.";
+      "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY), then rebuild.";
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;

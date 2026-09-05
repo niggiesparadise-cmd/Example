@@ -9,7 +9,22 @@
  */
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+/**
+ * The project's public API key.
+ *
+ * Supabase now labels this the "publishable key" (`sb_publishable_…`) where it
+ * used to be the "anon key" (a JWT). They are the same thing as far as this
+ * client is concerned — both are passed as the second argument to
+ * `createClient`, and both are safe to publish because every row they can reach
+ * is gated by Row Level Security.
+ *
+ * Both names are accepted so the variable can match whatever the dashboard
+ * calls it, rather than forcing a rename. Each access is a literal member
+ * expression, which is what Next.js needs in order to inline it at build time.
+ */
+const anonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 /** Whether the app was built with Supabase credentials available. */
 export const isSupabaseConfigured = Boolean(url && anonKey);
@@ -22,7 +37,8 @@ export function requireSupabaseEnv(): { url: string; anonKey: string } {
   if (!url || !anonKey) {
     throw new Error(
       "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and " +
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local (see README → Database setup), " +
+        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (or NEXT_PUBLIC_SUPABASE_ANON_KEY) " +
+        "in .env.local (see README → Database setup), " +
         "then rebuild — these are inlined at build time, not read at runtime.",
     );
   }

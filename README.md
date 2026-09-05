@@ -161,7 +161,11 @@ cp .env.example .env.local
 | Variable | Where it comes from | Notes |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Settings → API → Project URL | Public |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Settings → API → anon key | Public; protected by RLS |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Settings → API → Publishable key | Public; protected by RLS |
+
+Older projects label that key **anon public** instead. Either name works —
+the app reads `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and falls back to
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` — so set whichever matches your dashboard.
 
 Both are read at **build time**, not runtime. Changing them means rebuilding.
 A build without them still succeeds — the app then shows a configuration screen
@@ -180,6 +184,17 @@ order:
 | `0004_grants.sql` | Grants for `authenticated`; revokes everything from `anon` |
 
 With the Supabase CLI instead: `supabase db push`.
+
+### 5. Verify the connection
+
+```bash
+npm run verify:supabase
+```
+
+This performs a real authenticated round trip — signs up, checks the profile
+trigger fired, inserts a course, reads it back, confirms a signed-out client is
+blocked by RLS, then cleans up. Treat the database as connected only when this
+passes.
 
 ### 4. Authentication settings
 
@@ -237,9 +252,10 @@ above, plus:
   without the network.
 - **Credentials at build time** — `npm run android:sync` runs `next build`, so
   `.env.local` must exist locally. In CI, set `NEXT_PUBLIC_SUPABASE_URL` and
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY` as **repository variables** (Settings →
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` as **repository variables** (Settings →
   Secrets and variables → Actions → Variables). They are publishable values, so
-  variables rather than secrets is correct.
+  variables rather than secrets is correct — and the service-role key must never
+  be added to either.
 - **Password-reset links open the phone browser**, not the app — the WebView
   origin is `https://localhost`, which an email link cannot target. The reset
   completes in the browser and the user returns to the app to sign in. An

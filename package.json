@@ -11,7 +11,8 @@
     "preview": "npx --yes serve out",
     "android:sync": "next build && cap sync android",
     "android:open": "cap open android",
-    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug"
+    "android:apk": "npm run android:sync && cd android && ./gradlew assembleDebug",
+    "verify:supabase": "node scripts/verify-supabase.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
