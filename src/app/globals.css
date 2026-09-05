@@ -1,0 +1,106 @@
+/*
+ * HeroUI v3 ships its own Tailwind v4 entry: it imports `tailwindcss`, the
+ * component base layers and the default theme. Importing it here is the whole
+ * setup — do not import `tailwindcss` again above it.
+ */
+@import "@heroui/styles/css";
+
+/* HeroUI's class names live in prebuilt JS, so Tailwind has to scan the package. */
+@source "../../node_modules/@heroui/react/dist";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-source-serif), ui-serif, Georgia, "Times New Roman", serif;
+
+  /* Height of the mobile bottom navigation, used to pad the page above it. */
+  --spacing-bottom-nav: 4.5rem;
+}
+
+/*
+ * Chart & course palette.
+ *
+ * Five categorical slots, validated for colour-vision deficiency against the
+ * surfaces they actually render on (#ffffff light, #18181b dark) — worst
+ * adjacent CVD ΔE 9.1 light / 8.4 dark, both clear of the ΔE ≥ 8 gate. Each
+ * slot belongs to a course and never moves, so filtering or re-sorting a list
+ * never repaints the survivors. The dark column is the same five hues stepped
+ * for the dark surface, not an automatic flip.
+ */
+:root {
+  --course-1: #2a78d6; /* blue    — Algorithms */
+  --course-2: #eb6834; /* orange  — Linear Algebra */
+  --course-3: #1baf7a; /* aqua    — Databases */
+  --course-4: #eda100; /* yellow  — Electromagnetism */
+  --course-5: #e87ba4; /* magenta — Technical Writing */
+
+  --chart-grid: #e1e0d9;
+  --chart-axis: #c3c2b7;
+  --chart-muted: #898781;
+  --chart-goal: #898781;
+
+  /* Delta text. Green/red at text contrast, always paired with an arrow icon. */
+  --delta-good: #006300; /* 7.5:1 on white */
+  --delta-bad: #b91c1c; /*  6.5:1 on white */
+}
+
+.dark,
+[data-theme="dark"] {
+  --course-1: #3987e5;
+  --course-2: #d95926;
+  --course-3: #199e70;
+  --course-4: #c98500;
+  --course-5: #d55181;
+
+  --chart-grid: #2c2c2a;
+  --chart-axis: #383835;
+  --chart-muted: #898781;
+  --chart-goal: #898781;
+
+  --delta-good: #0ca30c; /* 5.3:1 on the dark surface */
+  --delta-bad: #e66767; /*  5.5:1 on the dark surface */
+}
+
+@theme inline {
+  --color-course-1: var(--course-1);
+  --color-course-2: var(--course-2);
+  --color-course-3: var(--course-3);
+  --color-course-4: var(--course-4);
+  --color-course-5: var(--course-5);
+
+  --color-delta-good: var(--delta-good);
+  --color-delta-bad: var(--delta-bad);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    /* Slightly tighter tracking reads better for a dense academic UI. */
+    letter-spacing: -0.006em;
+  }
+
+  /* Columns of numbers should line up; standalone display figures should not. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Recharts renders a focusable wrapper; keep its focus ring on brand. */
+  .recharts-wrapper:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!--
+      Base theme. DayNight so the native chrome (splash, window background,
+      system bars) tracks the device's dark-mode setting, matching the web UI's
+      "system" theme default.
+    -->
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
+    <!--
+      The theme the app actually runs under, once the splash hands over.
+
+      The system bars are transparent because the WebView draws edge to edge:
+      `StatusBar.setOverlaysWebView(true)` puts the page under the status bar and
+      the layout pads itself back out with `env(safe-area-inset-*)`. Their icon
+      colour is set at runtime from the active theme (see NativeShell), not here,
+      because the in-app toggle can differ from the system setting.
+    -->
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/splashBackground</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <!--
+      Cold-start theme. `postSplashScreenTheme` is what swaps the window over to
+      AppTheme.NoActionBar once the activity is up; without it the app would keep
+      the splash theme for its whole life.
+    -->
+    <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splashBackground</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
+    </style>
+</resources>

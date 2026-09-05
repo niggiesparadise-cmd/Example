@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The app's own logo lockup: the brand-blue rounded square with the white
+  graduation cap, exactly as the web UI draws it in the sidebar and top bar.
+  Self-contained so it reads on both the light and the dark splash background.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <path
+        android:fillColor="#0485F7"
+        android:pathData="M22,0 L74,0 A22,22 0 0 1 96,22 L96,74 A22,22 0 0 1 74,96 L22,96 A22,22 0 0 1 0,74 L0,22 A22,22 0 0 1 22,0 Z" />
+    <group
+        android:scaleX="2.333"
+        android:scaleY="2.333"
+        android:translateX="20"
+        android:translateY="20">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M21.42,10.922a1,1 0,0 0,-0.019 -1.838L12.83,5.18a2,2 0,0 0,-1.66 0L2.6,9.08a1,1 0,0 0,0 1.832l8.57,3.908a2,2 0,0 0,1.66 0z" />
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M22,10v6" />
+        <path
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="2"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M6,12.5V16a6,3 0,0 0,12 0v-3.5" />
+    </group>
+</vector>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Sampled from the running dashboard so the native chrome, the splash and the
+  launcher icon match the web UI exactly rather than approximately.
+-->
+<resources>
+    <color name="colorPrimary">#0485F7</color>
+    <color name="colorPrimaryDark">#0369C4</color>
+    <color name="colorAccent">#0485F7</color>
+
+    <!-- App background in light mode (the CSS background token). -->
+    <color name="splashBackground">#F5F5F5</color>
+</resources>
