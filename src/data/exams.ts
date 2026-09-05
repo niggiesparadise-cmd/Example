@@ -1,0 +1,88 @@
+import type { Exam } from "@/types";
+
+/** Assessments scheduled for the rest of the term. */
+export const exams: Exam[] = [
+  {
+    id: "exam-math-quiz2",
+    courseId: "math-2210",
+    title: "Quiz 2 — Eigenvalues & Diagonalisation",
+    kind: "quiz",
+    date: "2026-09-21",
+    start: "09:00",
+    end: "09:45",
+    location: "Noether 118",
+    weight: 10,
+    preparation: 45,
+    topics: ["Characteristic polynomials", "Diagonalisation", "Similar matrices"],
+  },
+  {
+    id: "exam-cs3410-midterm",
+    courseId: "cs-3410",
+    title: "Algorithms Midterm",
+    kind: "midterm",
+    date: "2026-09-25",
+    start: "09:00",
+    end: "11:00",
+    location: "Great Hall",
+    weight: 25,
+    preparation: 32,
+    topics: ["Amortised analysis", "Balanced trees", "Shortest paths", "Greedy proofs"],
+  },
+  {
+    id: "exam-phys-practical",
+    courseId: "phys-1120",
+    title: "Lab Practical Assessment",
+    kind: "practical",
+    date: "2026-10-02",
+    start: "14:00",
+    end: "16:00",
+    location: "Faraday Lab 2",
+    weight: 15,
+    preparation: 18,
+    topics: ["Induction", "Oscilloscope technique", "Uncertainty analysis"],
+  },
+  {
+    id: "exam-cs3200-midterm",
+    courseId: "cs-3200",
+    title: "Database Systems Midterm",
+    kind: "midterm",
+    date: "2026-10-09",
+    start: "13:00",
+    end: "15:00",
+    location: "Codd Lecture 1",
+    weight: 25,
+    preparation: 12,
+    topics: ["Relational algebra", "Normalisation", "Query planning", "Transactions"],
+  },
+  {
+    id: "exam-eng-oral",
+    courseId: "eng-2150",
+    title: "Documentation Defence",
+    kind: "oral",
+    date: "2026-10-16",
+    start: "10:00",
+    end: "10:30",
+    location: "Seminar Room 12",
+    weight: 20,
+    preparation: 5,
+    topics: ["Design rationale", "Audience analysis"],
+  },
+  {
+    id: "exam-phys-final",
+    courseId: "phys-1120",
+    title: "Electromagnetism Final",
+    kind: "final",
+    date: "2026-12-08",
+    start: "09:00",
+    end: "12:00",
+    location: "Examination Hall 2",
+    weight: 40,
+    preparation: 0,
+    topics: ["Maxwell's equations", "Waves", "Circuits", "Magnetostatics"],
+  },
+];
+
+/** Exams on or after `date`, soonest first. */
+export function upcomingExams(date: string): Exam[] {
+  return exams.filter((exam) => exam.date >= date).sort((a, b) => a.date.localeCompare(b.date));
+}
