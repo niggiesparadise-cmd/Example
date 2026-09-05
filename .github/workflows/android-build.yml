@@ -41,8 +41,21 @@ jobs:
       # Writes the static export to out/, which capacitor.config.ts names as
       # `webDir`. Configured with `output: "export"`, so this produces plain
       # HTML/CSS/JS with no server.
+      # Supabase credentials are inlined at build time, so they must be present
+      # here or the APK ships an app that cannot reach a backend. Add them as
+      # repository variables (Settings → Secrets and variables → Actions):
+      # NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY. Both are
+      # publishable values — the anon key is protected by Row Level Security —
+      # so `vars` is appropriate; neither belongs in `secrets`.
       - name: Build the Next.js static export
-        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "${NEXT_PUBLIC_SUPABASE_URL}" ]; then
+            echo "::warning::NEXT_PUBLIC_SUPABASE_URL is not set. The APK will build, but the app will show a configuration error instead of signing in."
+          fi
+          npm run build
 
       # Must run before Gradle, for two reasons verified against this repo:
       #   1. android/capacitor-cordova-android-plugins is gitignored, and

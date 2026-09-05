@@ -4,6 +4,7 @@ import { Chip, cn } from "@heroui/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { NavItem } from "@/config/navigation";
+import { useBadgeCounts } from "@/features/shared/badge-counts";
 
 /** Whether `href` is the active section for the current path. */
 export function isActivePath(pathname: string, href: string): boolean {
@@ -30,6 +31,8 @@ interface NavLinkProps {
 export function NavLink({ item, layout = "auto", onNavigate }: NavLinkProps) {
   const pathname = usePathname();
   const isActive = isActivePath(pathname, item.href);
+  const counts = useBadgeCounts();
+  const badge = item.badgeKey ? counts[item.badgeKey] : 0;
   const Icon = item.icon;
   const isList = layout === "list";
 
@@ -66,14 +69,14 @@ export function NavLink({ item, layout = "auto", onNavigate }: NavLinkProps) {
       {isList ? (
         <span className="text-xs text-muted">{item.description}</span>
       ) : null}
-      {item.badge ? (
+      {badge > 0 ? (
         <Chip
           className={cn(!isList && "max-lg:absolute max-lg:top-1.5 max-lg:right-2.5")}
           color={isActive ? "accent" : "default"}
           size="sm"
           variant="soft"
         >
-          {item.badge}
+          {badge}
         </Chip>
       ) : null}
     </Link>

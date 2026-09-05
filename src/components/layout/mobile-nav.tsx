@@ -5,7 +5,10 @@ import { Ellipsis } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { primaryNavigation, secondaryNavigation } from "@/config/navigation";
-import { student } from "@/data";
+import { useBadgeCounts } from "@/features/shared/badge-counts";
+import { useAuth } from "@/features/auth/auth-provider";
+import { useProfile } from "@/features/profile/use-profile";
+
 import { NavLink, isActivePath } from "./nav-link";
 
 /**
@@ -17,6 +20,7 @@ import { NavLink, isActivePath } from "./nav-link";
 export function MobileNav() {
   const pathname = usePathname();
   const isMoreActive = secondaryNavigation.some((item) => isActivePath(pathname, item.href));
+  const counts = useBadgeCounts();
 
   return (
     <nav
@@ -48,7 +52,7 @@ export function MobileNav() {
                   <Icon aria-hidden="true" className="size-5" strokeWidth={isActive ? 2.25 : 1.85} />
                 </span>
                 <span className="truncate">{item.label}</span>
-                {item.badge ? (
+                {item.badgeKey && counts[item.badgeKey] > 0 ? (
                   <span
                     aria-hidden="true"
                     className="absolute top-2.5 right-[calc(50%-1.75rem)] size-2 rounded-full bg-danger ring-2 ring-surface"
@@ -68,6 +72,9 @@ export function MobileNav() {
 }
 
 function MoreDrawer({ isActive }: { isActive: boolean }) {
+  const { data: profile } = useProfile();
+  const { user } = useAuth();
+
   return (
     <Drawer>
       <Drawer.Trigger
@@ -96,9 +103,7 @@ function MoreDrawer({ isActive }: { isActive: boolean }) {
                 <Drawer.Handle />
                 <Drawer.Header>
                   <Drawer.Heading>All sections</Drawer.Heading>
-                  <p className="text-sm text-muted">
-                    {student.term} · Week {student.currentWeek} of {student.totalWeeks}
-                  </p>
+                  <p className="text-sm text-muted">{profile?.term ?? "Study dashboard"}</p>
                 </Drawer.Header>
                 <Drawer.Body>
                   <ul className="flex flex-col gap-1 pb-2">
@@ -117,10 +122,14 @@ function MoreDrawer({ isActive }: { isActive: boolean }) {
                     ))}
                   </ul>
                   <div className="flex items-center justify-between rounded-xl bg-surface-secondary px-3 py-2.5">
-                    <span className="text-sm text-foreground">{student.name}</span>
-                    <Chip size="sm" variant="soft">
-                      {student.program}
-                    </Chip>
+                    <span className="truncate text-sm text-foreground">
+                      {profile?.full_name ?? user?.email ?? "Your account"}
+                    </span>
+                    {profile?.program ? (
+                      <Chip size="sm" variant="soft">
+                        {profile.program}
+                      </Chip>
+                    ) : null}
                   </div>
                 </Drawer.Body>
               </>

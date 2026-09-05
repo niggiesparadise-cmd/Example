@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter, Source_Serif_4 } from "next/font/google";
-import { AppShell } from "@/components/layout/app-shell";
+import { AppFrame } from "@/components/layout/app-frame";
 import { NativeShell } from "@/components/native/native-shell";
+import { AuthGuard } from "@/features/auth/auth-guard";
+import { AuthProvider } from "@/features/auth/auth-provider";
 import { Providers } from "@/components/providers";
 import { site } from "@/config/site";
 import "./globals.css";
@@ -56,7 +58,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="min-h-dvh bg-background text-foreground antialiased">
         <Providers>
           <NativeShell />
-          <AppShell>{children}</AppShell>
+          <AuthProvider>
+            <AuthGuard>
+              <AppFrame>{children}</AppFrame>
+            </AuthGuard>
+          </AuthProvider>
         </Providers>
       </body>
     </html>

@@ -1,4 +1,4 @@
-import type { ColorSlot } from "@/types";
+import type { ColorSlot } from "@/lib/supabase/database.types";
 
 /**
  * The chart palette, mirrored from `globals.css`.

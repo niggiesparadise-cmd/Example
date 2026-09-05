@@ -31,3 +31,21 @@ export function formatPercent(ratio: number, fractionDigits = 0): string {
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat("en-GB").format(value);
 }
+
+/**
+ * Maps a 0–100 weighted average onto its letter grade.
+ *
+ * Courses store a numeric grade; the letter is presentation, derived here rather
+ * than stored, so the two can never disagree.
+ */
+export function toLetterGrade(score: number): string {
+  if (score >= 93) return "A";
+  if (score >= 90) return "A−";
+  if (score >= 87) return "B+";
+  if (score >= 83) return "B";
+  if (score >= 80) return "B−";
+  if (score >= 77) return "C+";
+  if (score >= 73) return "C";
+  if (score >= 70) return "C−";
+  return "D";
+}

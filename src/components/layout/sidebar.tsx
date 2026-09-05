@@ -1,11 +1,11 @@
 "use client";
 
-import { ProgressBar, Separator } from "@heroui/react";
+import { Separator } from "@heroui/react";
 import { GraduationCap } from "lucide-react";
 import Link from "next/link";
 import { navigation } from "@/config/navigation";
 import { site } from "@/config/site";
-import { student } from "@/data";
+import { useProfile } from "@/features/profile/use-profile";
 import { NavLink } from "./nav-link";
 
 /**
@@ -15,7 +15,7 @@ import { NavLink } from "./nav-link";
  * icon rail below `lg`, and is replaced entirely by the bottom bar on mobile.
  */
 export function Sidebar() {
-  const weekProgress = Math.round((student.currentWeek / student.totalWeeks) * 100);
+  const { data: profile } = useProfile();
 
   return (
     <aside
@@ -35,7 +35,7 @@ export function Sidebar() {
             <span className="block font-display text-lg leading-none font-semibold text-foreground">
               {site.name}
             </span>
-            <span className="block text-xs text-muted">{student.term}</span>
+            <span className="block text-xs text-muted">{profile?.term ?? "Study dashboard"}</span>
           </span>
         </Link>
       </div>
@@ -53,23 +53,10 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-border p-4 max-lg:hidden">
-        <ProgressBar
-          aria-label={`Term progress: week ${student.currentWeek} of ${student.totalWeeks}`}
-          size="sm"
-          value={weekProgress}
-        >
-          <div className="mb-2 flex items-baseline justify-between gap-2">
-            <span className="text-xs font-medium text-foreground">
-              Week {student.currentWeek} of {student.totalWeeks}
-            </span>
-            <ProgressBar.Output className="tabular text-xs text-muted" />
-          </div>
-          <ProgressBar.Track>
-            <ProgressBar.Fill />
-          </ProgressBar.Track>
-        </ProgressBar>
-        <p className="mt-2 text-xs text-muted">{student.program}</p>
+        <p className="truncate text-sm font-medium text-foreground">{profile?.full_name ?? "Your account"}</p>
+        <p className="truncate text-xs text-muted">{profile?.program ?? "Add your programme in Settings"}</p>
       </div>
+
     </aside>
   );
 }

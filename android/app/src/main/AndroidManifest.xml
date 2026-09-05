@@ -37,8 +37,12 @@
     </application>
 
     <!--
-      No permissions are declared. The dashboard renders bundled demo data from
-      the APK's own assets and makes no network requests, so it needs none —
-      including INTERNET, which the Capacitor template ships by default.
+      Required now that the dashboard reads and writes real data.
+      Every course, task, exam, note and study session lives in Supabase, so the
+      app cannot function without network access. (It was removed while the app
+      rendered bundled demo data and genuinely made no requests.)
     -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Lets the app tell "you're offline" apart from "the request failed". -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 </manifest>

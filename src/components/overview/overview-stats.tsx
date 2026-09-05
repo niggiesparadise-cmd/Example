@@ -1,81 +1,86 @@
-import { CalendarCheck, Clock, Flame, TrendingUp } from "lucide-react";
+import { CalendarCheck, Clock, Flame, ListChecks } from "lucide-react";
 import { StatCard } from "@/components/ui/stat-card";
-import {
-  averageFocus,
-  recentDailyStudy,
-  student,
-  studyStreak,
-  tasksDueBetween,
-  weekOverWeekStudy,
-} from "@/data";
-import { TODAY, addDays, startOfWeek } from "@/lib/date";
-import { formatDuration, formatSigned, minutesToHours } from "@/lib/format";
+import type { AnalyticsSummary } from "@/features/analytics/api";
+import type { Task } from "@/lib/supabase/database.types";
+import { addDays, todayIso } from "@/lib/date";
+import { formatDuration, formatPercent, formatSigned, minutesToHours } from "@/lib/format";
 
 /**
- * The dashboard's KPI row.
+ * The KPI row, computed from the user's own rows.
  *
- * Four stat tiles rather than a chart apiece: each of these is a single current
- * value, and a one-bar chart would say less in more space.
+ * Every figure here traces to a `study_sessions` or `tasks` row. With no data
+ * they read zero rather than showing a plausible-looking placeholder.
  */
-export function OverviewStats() {
-  const week = weekOverWeekStudy();
-  const trend = recentDailyStudy(12).map((point) => minutesToHours(point.minutes));
-
-  const weekStart = startOfWeek(TODAY);
-  const weekEnd = addDays(weekStart, 6);
-  const dueThisWeek = tasksDueBetween(weekStart, weekEnd);
-  const completedThisWeek = dueThisWeek.filter((task) => task.status === "done").length;
-
-  const streak = studyStreak();
-  const focus = averageFocus(14);
-  const changePercent = Math.round(week.change * 100);
+export function OverviewStats({
+  dailyMinutes,
+  summary,
+  tasks,
+}: {
+  dailyMinutes: number[];
+  summary: AnalyticsSummary;
+  tasks: Task[];
+}) {
+  const today = todayIso();
+  const weekEnd = addDays(today, 6);
+  const dueThisWeek = tasks.filter(
+    (task) => task.due_date !== null && task.due_date >= today && task.due_date <= weekEnd,
+  );
+  const doneThisWeek = dueThisWeek.filter((task) => task.status === "done").length;
+  const changePercent = Math.round(summary.weekChange * 100);
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <StatCard
-        delta={{
-          label: `${formatSigned(changePercent)}%`,
-          direction: changePercent > 0 ? "up" : changePercent < 0 ? "down" : "flat",
-          period: "vs the same days last week",
-          upIsGood: true,
-        }}
+        delta={
+          summary.previousWeekMinutes > 0
+            ? {
+                label: `${formatSigned(changePercent)}%`,
+                direction: changePercent > 0 ? "up" : changePercent < 0 ? "down" : "flat",
+                period: "vs the same days last week",
+                upIsGood: true,
+              }
+            : undefined
+        }
+        caption={summary.previousWeekMinutes === 0 ? "No history to compare yet" : undefined}
         icon={<Clock aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
         label="Studied this week"
-        trend={trend}
-        value={formatDuration(week.current)}
+        trend={dailyMinutes.length > 1 ? dailyMinutes.slice(-12).map(minutesToHours) : undefined}
+        value={formatDuration(summary.weekMinutes)}
       />
 
       <StatCard
-        caption={`${completedThisWeek} of ${dueThisWeek.length} completed`}
+        caption={dueThisWeek.length === 0 ? "Nothing due in the next 7 days" : `${doneThisWeek} of ${dueThisWeek.length} completed`}
         icon={<CalendarCheck aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
         label="Due this week"
-        meter={{
-          label: `${completedThisWeek} of ${dueThisWeek.length} tasks completed this week`,
-          value: dueThisWeek.length === 0 ? 0 : (completedThisWeek / dueThisWeek.length) * 100,
-        }}
+        meter={
+          dueThisWeek.length > 0
+            ? {
+                label: `${doneThisWeek} of ${dueThisWeek.length} tasks completed this week`,
+                value: (doneThisWeek / dueThisWeek.length) * 100,
+              }
+            : undefined
+        }
         unit={dueThisWeek.length === 1 ? "task" : "tasks"}
         value={String(dueThisWeek.length)}
       />
 
       <StatCard
-        caption={`Daily goal ${formatDuration(student.dailyGoalMinutes)}`}
+        caption={summary.streak === 0 ? "Log a study session to start one" : "Consecutive days studied"}
         icon={<Flame aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
         label="Study streak"
-        unit={streak === 1 ? "day" : "days"}
-        value={String(streak)}
+        unit={summary.streak === 1 ? "day" : "days"}
+        value={String(summary.streak)}
       />
 
       <StatCard
-        caption={`Average focus score ${focus} over 14 days`}
-        delta={{
-          label: formatSigned(student.gpaDelta, 2),
-          direction: student.gpaDelta > 0 ? "up" : student.gpaDelta < 0 ? "down" : "flat",
-          period: "vs last term",
-          upIsGood: true,
-        }}
-        icon={<TrendingUp aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
-        label="Term GPA"
-        value={student.gpa.toFixed(2)}
+        caption={
+          summary.tasksTotal === 0
+            ? "No tasks yet"
+            : `${summary.tasksCompleted} of ${summary.tasksTotal} tasks done`
+        }
+        icon={<ListChecks aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
+        label="Task completion"
+        value={summary.tasksTotal === 0 ? "—" : formatPercent(summary.completionRate)}
       />
     </div>
   );

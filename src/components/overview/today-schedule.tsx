@@ -1,13 +1,15 @@
+"use client";
+
 import { Chip, cn } from "@heroui/react";
 import { CalendarDays, MapPin } from "lucide-react";
 import { CardLink } from "@/components/ui/card-link";
 import { CourseDot } from "@/components/ui/course-dot";
+import { NoData } from "@/components/ui/data-states";
 import { SectionCard } from "@/components/ui/section-card";
-import { courseOf, eventsOn } from "@/data";
+import type { Course, ScheduleEvent, SessionKind } from "@/lib/supabase/database.types";
 import { courseDotClass } from "@/lib/chart-palette";
-import { TODAY, durationMinutes, formatTime, timeToMinutes } from "@/lib/date";
+import { durationMinutes, formatTime, timeToMinutes } from "@/lib/date";
 import { formatDuration } from "@/lib/format";
-import type { SessionKind } from "@/types";
 
 const kindLabels: Record<SessionKind, string> = {
   lecture: "Lecture",
@@ -18,17 +20,17 @@ const kindLabels: Record<SessionKind, string> = {
   exam: "Exam",
 };
 
-/** The current wall-clock time used to mark what has already happened. */
-const NOW_MINUTES = 12 * 60 + 40;
-
 /** Today's timetable as a vertical timeline. */
-export function TodaySchedule() {
-  const events = eventsOn(TODAY);
-  const remaining = events.filter((event) => timeToMinutes(event.end) > NOW_MINUTES);
+export function TodaySchedule({ courses, events }: { courses: Course[]; events: ScheduleEvent[] }) {
+  // Real wall-clock time now, so "Now" and the dimming actually mean something.
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const remaining = events.filter((event) => timeToMinutes(event.end_time) > nowMinutes);
+  const courseById = new Map(courses.map((course) => [course.id, course]));
 
   return (
     <SectionCard
-      action={<CardLink href="/schedule">Full week</CardLink>}
+      action={<CardLink href="/schedule/">Full week</CardLink>}
       description={
         events.length === 0
           ? "Nothing timetabled today"
@@ -38,33 +40,36 @@ export function TodaySchedule() {
       title="Today's schedule"
     >
       {events.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted">A clear day — a good one for revision.</p>
+        <NoData
+          action={<CardLink href="/schedule/">Add an event</CardLink>}
+          description="A clear day — or nothing added to your timetable yet."
+          icon={<CalendarDays aria-hidden="true" className="size-5" strokeWidth={1.75} />}
+          title="Nothing scheduled"
+        />
       ) : (
         <ol className="flex flex-col">
           {events.map((event) => {
-            const course = courseOf(event.courseId);
-            const isPast = timeToMinutes(event.end) <= NOW_MINUTES;
-            const isNow =
-              timeToMinutes(event.start) <= NOW_MINUTES && timeToMinutes(event.end) > NOW_MINUTES;
+            const course = event.course_id ? courseById.get(event.course_id) : undefined;
+            const isPast = timeToMinutes(event.end_time) <= nowMinutes;
+            const isNow = timeToMinutes(event.start_time) <= nowMinutes && !isPast;
 
             return (
               <li key={event.id} className="flex gap-3 py-2.5 first:pt-0 last:pb-0">
                 <div className="flex w-14 shrink-0 flex-col items-end pt-0.5">
                   <span className={cn("tabular text-sm font-medium", isPast ? "text-muted" : "text-foreground")}>
-                    {formatTime(event.start)}
+                    {formatTime(event.start_time)}
                   </span>
                   <span className="tabular text-xs text-muted">
-                    {formatDuration(durationMinutes(event.start, event.end))}
+                    {formatDuration(durationMinutes(event.start_time, event.end_time))}
                   </span>
                 </div>
 
-                {/* The rail: a course-coloured spine, doubled by the course code below. */}
                 <div className="flex flex-col items-center pt-1">
                   <span
                     aria-hidden="true"
                     className={cn(
                       "size-2.5 shrink-0 rounded-full",
-                      courseDotClass[course.colorSlot],
+                      course ? courseDotClass[course.color_slot] : "bg-border",
                       isPast && "opacity-40",
                     )}
                   />
@@ -81,17 +86,25 @@ export function TodaySchedule() {
                     ) : null}
                   </div>
                   <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
-                    <span className="inline-flex items-center gap-1.5">
-                      <CourseDot course={course} />
-                      {course.code}
-                    </span>
-                    <span aria-hidden="true">·</span>
+                    {course ? (
+                      <>
+                        <span className="inline-flex items-center gap-1.5">
+                          <CourseDot course={course} />
+                          {course.code}
+                        </span>
+                        <span aria-hidden="true">·</span>
+                      </>
+                    ) : null}
                     <span>{kindLabels[event.kind]}</span>
-                    <span aria-hidden="true">·</span>
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin aria-hidden="true" className="size-3" strokeWidth={1.85} />
-                      {event.location}
-                    </span>
+                    {event.location ? (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin aria-hidden="true" className="size-3" strokeWidth={1.85} />
+                          {event.location}
+                        </span>
+                      </>
+                    ) : null}
                   </p>
                   {event.note ? <p className="mt-1 text-xs text-muted italic">{event.note}</p> : null}
                 </div>

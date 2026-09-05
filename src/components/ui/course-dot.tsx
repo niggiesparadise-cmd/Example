@@ -1,5 +1,5 @@
 import { cn } from "@heroui/react";
-import type { Course } from "@/types";
+import type { Course } from "@/lib/supabase/database.types";
 import { courseDotClass } from "@/lib/chart-palette";
 
 /**
@@ -12,7 +12,7 @@ export function CourseDot({ className, course }: { className?: string; course: C
   return (
     <span
       aria-hidden="true"
-      className={cn("inline-block size-2.5 shrink-0 rounded-full", courseDotClass[course.colorSlot], className)}
+      className={cn("inline-block size-2.5 shrink-0 rounded-full", courseDotClass[course.color_slot], className)}
     />
   );
 }

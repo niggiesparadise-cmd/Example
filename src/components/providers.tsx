@@ -1,6 +1,6 @@
 "use client";
 
-import { RouterProvider } from "@heroui/react";
+import { RouterProvider, Toast } from "@heroui/react";
 import { ThemeProvider } from "next-themes";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -26,6 +26,8 @@ export function Providers({ children }: { children: ReactNode }) {
         enableSystem
       >
         {children}
+        {/* Success and error feedback for every database write. */}
+        <Toast.Provider placement="bottom end" />
       </ThemeProvider>
     </RouterProvider>
   );

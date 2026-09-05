@@ -1,7 +1,7 @@
 "use client";
 
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import type { CourseStudyTotal } from "@/data";
+import type { CourseStudyTotal } from "@/features/analytics/api";
 import { useChartPalette } from "@/hooks/use-chart-palette";
 import { formatDuration, formatPercent, minutesToHours } from "@/lib/format";
 import { ChartFrame } from "./chart-frame";
@@ -39,14 +39,14 @@ export function CourseHoursChart({ height = 220, totals }: CourseHoursChartProps
   const { isReady, palette } = useChartPalette();
 
   const data: ChartDatum[] = [...totals]
-    .sort((a, b) => a.course.colorSlot - b.course.colorSlot)
+    .sort((a, b) => a.course.color_slot - b.course.color_slot)
     .map((total) => ({
       code: total.course.code,
       title: total.course.title,
       hours: minutesToHours(total.minutes),
       minutes: total.minutes,
       share: total.share,
-      color: palette.series[total.course.colorSlot - 1],
+      color: palette.series[total.course.color_slot - 1],
     }));
 
   const peak = Math.max(1, ...data.map((datum) => datum.hours));

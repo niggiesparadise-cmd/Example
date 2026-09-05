@@ -1,29 +1,37 @@
+"use client";
+
 import { Card, Chip, ProgressBar } from "@heroui/react";
 import { CalendarClock, MapPin } from "lucide-react";
 import { CardLink } from "@/components/ui/card-link";
 import { CourseDot } from "@/components/ui/course-dot";
-import { courseOf, upcomingExams } from "@/data";
-import { TODAY, daysUntil, formatLongDate, formatTime } from "@/lib/date";
+import { NoData } from "@/components/ui/data-states";
+import type { Course, Exam } from "@/lib/supabase/database.types";
+import { daysUntil, formatLongDate, formatTime, todayIso } from "@/lib/date";
 
-/**
- * The next assessment, as the view's single hero figure.
- *
- * A countdown is one number, so it gets the large type rather than a chart —
- * and the two exams after it stay small underneath for context.
- */
-export function NextExam() {
-  const [next, ...later] = upcomingExams(TODAY);
+/** The next assessment, as the view's single hero figure. */
+export function NextExam({ courses, exams }: { courses: Course[]; exams: Exam[] }) {
+  const today = todayIso();
+  const upcoming = exams
+    .filter((exam) => exam.exam_date >= today)
+    .sort((a, b) => a.exam_date.localeCompare(b.exam_date));
+  const [next, ...later] = upcoming;
+  const courseById = new Map(courses.map((course) => [course.id, course]));
 
   if (!next) {
     return (
-      <Card className="justify-center border border-border p-5 text-center">
-        <p className="text-sm text-muted">No assessments left this term.</p>
+      <Card className="justify-center border border-border p-5">
+        <NoData
+          action={<CardLink href="/exams/">Add an exam</CardLink>}
+          description="Add your assessments and the countdown starts here."
+          icon={<CalendarClock aria-hidden="true" className="size-5" strokeWidth={1.75} />}
+          title="No assessments scheduled"
+        />
       </Card>
     );
   }
 
-  const course = courseOf(next.courseId);
-  const days = daysUntil(next.date);
+  const course = next.course_id ? courseById.get(next.course_id) : undefined;
+  const days = daysUntil(next.exam_date);
   const countdown = days === 0 ? "Today" : days === 1 ? "Tomorrow" : String(days);
 
   return (
@@ -33,7 +41,7 @@ export function NextExam() {
           <CalendarClock aria-hidden="true" className="size-[18px] text-muted" strokeWidth={1.85} />
           <Card.Title className="text-base font-semibold">Next assessment</Card.Title>
         </div>
-        <CardLink href="/exams">All exams</CardLink>
+        <CardLink href="/exams/">All exams</CardLink>
       </Card.Header>
 
       <Card.Content className="gap-4">
@@ -45,23 +53,37 @@ export function NextExam() {
         <div>
           <p className="text-sm font-medium text-balance text-foreground">{next.title}</p>
           <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <CourseDot course={course} />
-              {course.code}
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>{formatLongDate(next.date)}</span>
-            <span aria-hidden="true">·</span>
-            <span>
-              {formatTime(next.start)}–{formatTime(next.end)}
-            </span>
+            {course ? (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <CourseDot course={course} />
+                  {course.code}
+                </span>
+                <span aria-hidden="true">·</span>
+              </>
+            ) : null}
+            <span>{formatLongDate(next.exam_date)}</span>
+            {next.start_time && next.end_time ? (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>
+                  {formatTime(next.start_time)}–{formatTime(next.end_time)}
+                </span>
+              </>
+            ) : null}
           </p>
-          <p className="mt-1 flex items-center gap-1 text-xs text-muted">
-            <MapPin aria-hidden="true" className="size-3" strokeWidth={1.85} />
-            {next.location}
-            <span aria-hidden="true">·</span>
-            {next.weight}% of the final grade
-          </p>
+          {next.location || next.weight ? (
+            <p className="mt-1 flex items-center gap-1 text-xs text-muted">
+              {next.location ? (
+                <>
+                  <MapPin aria-hidden="true" className="size-3" strokeWidth={1.85} />
+                  {next.location}
+                </>
+              ) : null}
+              {next.location && next.weight ? <span aria-hidden="true">·</span> : null}
+              {next.weight ? `${next.weight}% of the final grade` : null}
+            </p>
+          ) : null}
         </div>
 
         <ProgressBar
@@ -79,13 +101,15 @@ export function NextExam() {
           </ProgressBar.Track>
         </ProgressBar>
 
-        <div className="flex flex-wrap gap-1.5">
-          {next.topics.slice(0, 3).map((topic) => (
-            <Chip key={topic} size="sm" variant="soft">
-              {topic}
-            </Chip>
-          ))}
-        </div>
+        {next.topics.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {next.topics.slice(0, 3).map((topic) => (
+              <Chip key={topic} size="sm" variant="soft">
+                {topic}
+              </Chip>
+            ))}
+          </div>
+        ) : null}
       </Card.Content>
 
       {later.length > 0 ? (
@@ -93,15 +117,14 @@ export function NextExam() {
           <p className="text-xs font-medium text-muted">Then</p>
           <ul className="flex flex-col gap-2">
             {later.slice(0, 2).map((exam) => {
-              const examCourse = courseOf(exam.courseId);
-              const away = daysUntil(exam.date);
+              const examCourse = exam.course_id ? courseById.get(exam.course_id) : undefined;
               return (
                 <li key={exam.id} className="flex items-center justify-between gap-3 text-xs">
                   <span className="flex min-w-0 items-center gap-1.5">
-                    <CourseDot course={examCourse} />
+                    {examCourse ? <CourseDot course={examCourse} /> : null}
                     <span className="truncate text-foreground">{exam.title}</span>
                   </span>
-                  <span className="tabular shrink-0 text-muted">in {away} days</span>
+                  <span className="tabular shrink-0 text-muted">in {daysUntil(exam.exam_date)} days</span>
                 </li>
               );
             })}

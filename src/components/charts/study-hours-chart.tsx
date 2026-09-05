@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { DailyStudyPoint } from "@/data";
+import type { DailyStudyPoint } from "@/features/analytics/api";
 import { useChartPalette } from "@/hooks/use-chart-palette";
 import { formatShortDate, formatWeekday } from "@/lib/date";
 import { formatDuration, minutesToHours } from "@/lib/format";

@@ -7,12 +7,23 @@
  */
 
 /**
- * The date the dashboard treats as "today".
+ * Today, in the user's own timezone.
  *
- * The demo dataset is anchored to a fixed point in the Autumn 2026 term so the
- * UI is deterministic. Swap this for `new Date()` once real data is wired up.
+ * This used to be a frozen constant so the mock dataset rendered deterministically.
+ * With real data there is nothing to pin: every screen that calls this renders
+ * only after the auth guard has resolved on the client, so there is no server
+ * render to disagree with.
  */
-export const TODAY = "2026-09-16";
+export function todayIso(): string {
+  return toIsoDate(new Date());
+}
+
+/** Local calendar date of a `Date`, as `YYYY-MM-DD` (not UTC-shifted). */
+export function toIsoDate(date: Date): string {
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
 
 /** Parse an ISO `YYYY-MM-DD` string into a UTC-midnight `Date`. */
 export function parseDate(iso: string): Date {
@@ -37,9 +48,9 @@ export function daysBetween(from: string, to: string): number {
   return Math.round(ms / 86_400_000);
 }
 
-/** Whole days from {@link TODAY} until `iso`. */
+/** Whole days from today until `iso`; negative when `iso` is in the past. */
 export function daysUntil(iso: string): number {
-  return daysBetween(TODAY, iso);
+  return daysBetween(todayIso(), iso);
 }
 
 /** Day of the week for an ISO date, 0 = Sunday. */

@@ -15,6 +15,9 @@ npm run dev     # http://localhost:3000
 
 Other scripts: `npm run build`, `npm run lint`, `npm run typecheck`.
 
+**Set up the database first** — the app needs a Supabase project to run at all.
+See [Database setup](#database-setup).
+
 ## Deploying
 
 The app is configured for **static export** — `npm run build` writes a plain
@@ -50,20 +53,20 @@ basePath: "/study-dashboard",
 
 ## What's built
 
-The **Overview** page is complete. Every other section is routed, navigable and
-backed by its data model, with a placeholder page describing what lands there
-next — so navigation, active states and deep links all work while the sections
-are filled in one at a time.
+Every section is functional and backed by Supabase. Nothing in the UI is mock
+data.
 
-| Section | Status |
+| Section | What it does |
 |---|---|
-| Overview | Built |
-| Courses, Schedule, Tasks, Exams, Notes, Analytics | Routed, placeholder page |
-
-The Overview page carries a KPI row (study time, work due, streak, term GPA), a
-14-day study-activity chart against the daily goal, a hero countdown to the next
-assessment, today's timetable, the next tasks due, course progress, recent notes
-and a per-course breakdown of the week's study time.
+| Overview | Today's schedule, upcoming tasks, next exam, course progress, recent notes, weekly study time — all from your rows, with empty states when there are none |
+| Courses | Full CRUD, plus a topic checklist that *derives* course progress |
+| Tasks | Full CRUD, complete/incomplete, due date, priority, course link, filters |
+| Exams | Full CRUD, countdown, weighting, revision progress, topics |
+| Notes | Full CRUD plus full-text search running in Postgres |
+| Schedule | Full CRUD on a navigable week view |
+| Study sessions | Start/stop timer whose state lives in the database, so it survives a restart |
+| Analytics | Total and weekly hours, hours by course, completion rate, streak, activity over time — computed from real sessions |
+| Auth | Sign up, sign in, sign out, session persistence, protected routes, password reset, profile |
 
 ## Android app
 
@@ -133,6 +136,124 @@ and open it (Android will ask you to allow installs from that source).
   `assembleRelease`.
 - **Demo data is read-only.** Ticking a task is local component state, as on the
   web; nothing persists across launches.
+
+## Database setup
+
+The app stores everything in Supabase (Postgres + Auth). It needs a project
+before it will run.
+
+### 1. Create a project
+
+Create one at [supabase.com](https://supabase.com), then open
+**Settings → API** and copy the **Project URL** and the **anon / publishable**
+key.
+
+> The **service_role** key must never be used here. It bypasses Row Level
+> Security, and anything in this app's environment is inlined into the client
+> bundle — including the bundle inside the APK.
+
+### 2. Environment variables
+
+```bash
+cp .env.example .env.local
+```
+
+| Variable | Where it comes from | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Settings → API → Project URL | Public |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Settings → API → anon key | Public; protected by RLS |
+
+Both are read at **build time**, not runtime. Changing them means rebuilding.
+A build without them still succeeds — the app then shows a configuration screen
+instead of a login form, rather than failing silently.
+
+### 3. Run the migrations
+
+Paste each file in `supabase/migrations/` into the project's **SQL Editor**, in
+order:
+
+| File | What it does |
+|---|---|
+| `0001_initial_schema.sql` | 9 tables, enums, constraints, generated columns, indexes |
+| `0002_rls_policies.sql` | Row Level Security on every table |
+| `0003_triggers.sql` | `updated_at`, auto-profile on signup, task completion sync |
+| `0004_grants.sql` | Grants for `authenticated`; revokes everything from `anon` |
+
+With the Supabase CLI instead: `supabase db push`.
+
+### 4. Authentication settings
+
+In **Authentication → Providers**, Email is enabled by default. Two things worth
+setting deliberately:
+
+- **Confirm email** — on by default. Sign-up then shows a "check your inbox"
+  screen instead of signing straight in. Turn it off for quicker local testing.
+- **Redirect URLs** (Authentication → URL Configuration) — add the origins you
+  will use, or password-reset links will refuse to complete:
+  `http://localhost:3000`, your deployed origin, and `https://localhost` for the
+  Android app.
+
+## Data architecture
+
+```
+src/
+  lib/supabase/       client, typed schema, env validation
+  features/
+    auth/             session provider, route guard, validation
+    courses/  tasks/  exams/  notes/  schedule/  study-sessions/
+                      one api.ts (data access) + form dialog each
+    analytics/        figures derived from real rows
+    overview/         the dashboard's combined query
+    profile/  seed/   profile, and the demo-data utility
+    shared/           useQuery / useMutation, badge counts, error mapping
+  components/         unchanged HeroUI presentation layer
+```
+
+**Components never touch Supabase.** They call a feature's `api.ts` through
+`useQuery` / `useMutation`, which own loading, error, empty and success states.
+Swapping the backend means rewriting `features/*/api.ts` and nothing else.
+
+### Row Level Security
+
+Every table carries `user_id` (profiles use `id`) and has four policies —
+select, insert, update, delete — all keyed on `auth.uid()`. `FORCE ROW LEVEL
+SECURITY` is on, so the table owner is not exempt either.
+
+This was verified against a real Postgres instance with two users. Reads,
+updates and deletes across users all return zero rows; inserting a row owned by
+another user raises `new row violates row-level security policy`; the anonymous
+role is denied at the grant level before RLS is even consulted.
+
+Security does **not** depend on the client: the static bundle is public by
+design, so the database is the only place authorisation is enforced.
+
+## Android build requirements
+
+The Android app is the same web build in a WebView, so it inherits the setup
+above, plus:
+
+- **`INTERNET` permission** — declared in `AndroidManifest.xml`. The app was
+  offline-only when it rendered demo data; with a real backend it cannot work
+  without the network.
+- **Credentials at build time** — `npm run android:sync` runs `next build`, so
+  `.env.local` must exist locally. In CI, set `NEXT_PUBLIC_SUPABASE_URL` and
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` as **repository variables** (Settings →
+  Secrets and variables → Actions → Variables). They are publishable values, so
+  variables rather than secrets is correct.
+- **Password-reset links open the phone browser**, not the app — the WebView
+  origin is `https://localhost`, which an email link cannot target. The reset
+  completes in the browser and the user returns to the app to sign in. An
+  in-app flow would need Android App Links plus `@capacitor/app` URL handling.
+
+## Demo data
+
+Settings → **Load demo data** writes a sample term (5 courses with topics, 13
+tasks, 4 exams, 6 notes, 4 weeks of timetable, 30 days of study sessions) into
+your account through the normal API, so it exercises the same write path and RLS
+policies as the UI. **Clear my data** removes everything you own.
+
+Nothing in the production UI is mocked: every screen renders your rows, and an
+account with no data shows empty states rather than placeholder figures.
 
 ## Architecture
 

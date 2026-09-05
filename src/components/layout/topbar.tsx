@@ -3,8 +3,10 @@
 import { Avatar, Badge, Button, Dropdown, Header, SearchField, Separator } from "@heroui/react";
 import { Bell, GraduationCap, LogOut, Plus, Settings, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { site } from "@/config/site";
-import { student } from "@/data";
+import { useAuth } from "@/features/auth/auth-provider";
+import { initialsOf, useProfile } from "@/features/profile/use-profile";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -14,6 +16,11 @@ import { ThemeToggle } from "./theme-toggle";
  * and the theme, notification and account controls at every width.
  */
 export function Topbar() {
+  const { signOut, user } = useAuth();
+  const { data: profile } = useProfile();
+  const router = useRouter();
+  const initials = initialsOf(profile?.full_name, user?.email);
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
@@ -58,27 +65,34 @@ export function Topbar() {
           <Dropdown>
             <Button aria-label="Account menu" className="rounded-full p-0.5" isIconOnly size="sm" variant="ghost">
               <Avatar size="sm">
-                <Avatar.Fallback>{student.avatarInitials}</Avatar.Fallback>
+                <Avatar.Fallback>{initials}</Avatar.Fallback>
               </Avatar>
             </Button>
             <Dropdown.Popover placement="bottom end">
               <Dropdown.Menu>
                 <Dropdown.Section>
                   <Header className="px-2 py-1.5">
-                    <span className="block text-sm font-medium text-foreground">{student.name}</span>
-                    <span className="block text-xs text-muted">
-                      {student.program} · {student.year}
+                    <span className="block text-sm font-medium text-foreground">
+                      {profile?.full_name ?? "Your account"}
                     </span>
+                    <span className="block text-xs text-muted">{user?.email}</span>
                   </Header>
-                  <Dropdown.Item id="profile" textValue="Profile">
+                  <Dropdown.Item href="/settings/" id="profile" textValue="Profile">
                     <User aria-hidden="true" className="size-4 text-muted" strokeWidth={1.85} />
                     Profile
                   </Dropdown.Item>
-                  <Dropdown.Item id="settings" textValue="Settings">
+                  <Dropdown.Item href="/settings/" id="settings" textValue="Settings">
                     <Settings aria-hidden="true" className="size-4 text-muted" strokeWidth={1.85} />
                     Settings
                   </Dropdown.Item>
-                  <Dropdown.Item id="sign-out" textValue="Sign out" variant="danger">
+                  <Dropdown.Item
+                    id="sign-out"
+                    onAction={() => {
+                      void signOut().then(() => router.replace("/sign-in/"));
+                    }}
+                    textValue="Sign out"
+                    variant="danger"
+                  >
                     <LogOut aria-hidden="true" className="size-4" strokeWidth={1.85} />
                     Sign out
                   </Dropdown.Item>

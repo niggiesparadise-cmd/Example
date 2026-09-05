@@ -1,5 +1,5 @@
 import { Chip } from "@heroui/react";
-import type { TaskPriority } from "@/types";
+import type { TaskPriority } from "@/lib/supabase/database.types";
 
 const priorityLabels: Record<TaskPriority, string> = {
   high: "High",

@@ -8,9 +8,6 @@ import {
   NotebookPen,
   type LucideIcon,
 } from "lucide-react";
-import { exams } from "@/data/exams";
-import { tasks } from "@/data/tasks";
-import { TODAY, addDays } from "@/lib/date";
 
 export interface NavItem {
   /** Route the item links to. */
@@ -19,19 +16,14 @@ export interface NavItem {
   /** Two-word description used by the mobile drawer and tooltips. */
   description: string;
   icon: LucideIcon;
-  /** Shown as a count badge in the sidebar when greater than zero. */
-  badge?: number;
+  /**
+   * Key the live badge count is looked up under. The count itself comes from
+   * the user's data at render time, not from this static config.
+   */
+  badgeKey?: "tasks" | "exams";
   /** Whether the item appears in the mobile bottom bar. */
   primary?: boolean;
 }
-
-/** Open tasks falling due in the next week — the Tasks badge. */
-const tasksNeedingAttention = tasks.filter(
-  (task) => task.status !== "done" && task.due <= addDays(TODAY, 7),
-).length;
-
-/** Assessments in the next fortnight — the Exams badge. */
-const examsSoon = exams.filter((exam) => exam.date >= TODAY && exam.date <= addDays(TODAY, 14)).length;
 
 /** Single source of truth for every section of the dashboard. */
 export const navigation: NavItem[] = [
@@ -60,7 +52,7 @@ export const navigation: NavItem[] = [
     label: "Tasks",
     description: "Assignments and reading",
     icon: ListChecks,
-    badge: tasksNeedingAttention,
+    badgeKey: "tasks",
     primary: true,
   },
   {
@@ -68,7 +60,7 @@ export const navigation: NavItem[] = [
     label: "Exams",
     description: "Dates and revision",
     icon: GraduationCap,
-    badge: examsSoon,
+    badgeKey: "exams",
     primary: true,
   },
   {
