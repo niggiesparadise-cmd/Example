@@ -20,7 +20,7 @@ export function Sidebar() {
   return (
     <aside
       aria-label="Main navigation"
-      className="fixed inset-y-0 left-0 z-30 hidden w-[88px] flex-col border-r border-border bg-surface md:flex lg:w-[264px]"
+      className="fixed inset-y-0 left-0 z-30 hidden w-[88px] flex-col border-r border-border bg-surface pt-[env(safe-area-inset-top)] md:flex lg:w-[264px]"
     >
       <div className="flex h-16 items-center gap-2.5 px-4 max-lg:justify-center max-lg:px-0">
         <Link

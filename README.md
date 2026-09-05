@@ -65,6 +65,75 @@ The Overview page carries a KPI row (study time, work due, streak, term GPA), a
 assessment, today's timetable, the next tasks due, course progress, recent notes
 and a per-course breakdown of the week's study time.
 
+## Android app
+
+The same web build is packaged as an Android app with Capacitor — no second
+codebase, no React Native, no rewritten components. The APK ships the Next.js
+static export in its assets and renders it in a WebView, so the UI is the UI.
+
+```bash
+npm run android:sync    # next build + cap sync android
+npm run android:apk     # the above, then ./gradlew assembleDebug
+npm run android:open    # open the project in Android Studio
+```
+
+Requires a JDK (17+) and the Android SDK. `android/local.properties` must point
+at the SDK, or `ANDROID_HOME` must be set:
+
+```
+sdk.dir=/path/to/Android/sdk
+```
+
+The debug APK lands at:
+
+```
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Install it over USB with `adb install -r <path>`, or copy the file to the phone
+and open it (Android will ask you to allow installs from that source).
+
+| Setting | Value |
+|---|---|
+| App name | Study Dashboard |
+| Package ID | `com.studydashboard.app` |
+| Orientation | Portrait |
+| Min / target SDK | 24 / 36 |
+| Permissions | None |
+
+### How it behaves natively
+
+- **Offline by construction.** The demo data is compiled into the JavaScript
+  bundle and the fonts are self-hosted, so the app makes no network requests at
+  all — the `INTERNET` permission the Capacitor template ships with has been
+  removed.
+- **Status bar and safe areas.** The WebView draws edge to edge
+  (`viewport-fit=cover`); the top bar, sidebar and bottom bar pad themselves out
+  of `env(safe-area-inset-*)`. Status bar icons follow the in-app theme toggle,
+  set at runtime from `NativeShell` rather than baked into the Android theme,
+  because the in-app choice can differ from the system setting.
+- **Splash screen.** `launchAutoHide` is off and the web layer calls
+  `SplashScreen.hide()` after its first paint, so there is no white flash while
+  the WebView boots. The splash background follows light/dark via `values-night`.
+- **Back button.** Handled in `MainActivity` so it walks back through the
+  dashboard's history and exits only from the home screen.
+
+### Android limitations
+
+- **A WebView reload returns to Overview.** Capacitor's asset server serves the
+  root `index.html` for any path without a file extension, so `/courses/` cannot
+  resolve to `courses/index.html`. Setting `server.html5mode: false` is worse —
+  extensionless paths then match no handler and the WebView shows an error page.
+  In practice this costs nothing: the app cold-starts at `/` and every in-app
+  link is a client-side App Router transition, so all seven sections work
+  normally. Only an explicit reload (or a low-memory restore) lands back on
+  Overview, which is how a phone app is expected to restart.
+- **Debug builds only.** No signing config is set up, so `assembleDebug`
+  produces a debug-signed APK. A Play Store build needs a keystore and
+  `assembleRelease`.
+- **Demo data is read-only.** Ticking a task is local component state, as on the
+  web; nothing persists across launches.
+
 ## Architecture
 
 ```

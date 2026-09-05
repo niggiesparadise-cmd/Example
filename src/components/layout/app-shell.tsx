@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-dvh flex-col md:pl-[88px] lg:pl-[264px]">
         <Topbar />
         <main
-          className="flex-1 px-4 pt-6 pb-[calc(var(--spacing-bottom-nav)+1.5rem)] sm:px-6 md:pb-10 lg:px-8"
+          className="flex-1 px-[max(1rem,env(safe-area-inset-left))] pt-6 pb-[calc(var(--spacing-bottom-nav)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 md:pb-10 lg:px-8"
           id="main-content"
         >
           {children}

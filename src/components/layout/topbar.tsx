@@ -15,7 +15,7 @@ import { ThemeToggle } from "./theme-toggle";
  */
 export function Topbar() {
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-border bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           aria-label={`${site.name} — ${site.tagline}`}

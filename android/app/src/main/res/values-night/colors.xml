@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App background in dark mode (the CSS background token). -->
+    <color name="splashBackground">#060607</color>
+</resources>

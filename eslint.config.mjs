@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // The native project is generated, and `cap sync` copies the built web
+    // bundle into it — linting minified output produces thousands of false hits.
+    "android/**",
   ]),
 ]);
 
