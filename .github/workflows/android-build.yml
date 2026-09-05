@@ -1,0 +1,111 @@
+name: Android Debug APK
+
+# Manual runs from the Actions tab (including from a phone browser), plus every
+# branch push. Tags are excluded — the APK is a build artifact, not a release.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+
+# A newer push to the same branch supersedes an in-flight build.
+concurrency:
+  group: android-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # Node 22 matches the version the project is developed against. `cache: npm`
+      # keys off package-lock.json, which is committed and in sync.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # `npm ci` (not `npm install`) so the lockfile is authoritative. Dev
+      # dependencies are required: @capacitor/cli provides the `cap` binary.
+      - name: Install npm dependencies
+        run: npm ci
+
+      # Writes the static export to out/, which capacitor.config.ts names as
+      # `webDir`. Configured with `output: "export"`, so this produces plain
+      # HTML/CSS/JS with no server.
+      - name: Build the Next.js static export
+        run: npm run build
+
+      # Must run before Gradle, for two reasons verified against this repo:
+      #   1. android/capacitor-cordova-android-plugins is gitignored, and
+      #      settings.gradle includes it as a module — sync regenerates it, and
+      #      without it Gradle fails at configuration time.
+      #   2. It copies out/ into android/app/src/main/assets/public.
+      - name: Sync the web build into the Android project
+        run: npx cap sync android
+
+      # JDK 21 — Gradle 8.14.3 and Android Gradle Plugin 8.13.0, both pinned by
+      # the project, support it, and it matches the development environment.
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      # Installs the command-line tools and puts sdkmanager on PATH. Left on its
+      # defaults deliberately — the platform and build-tools this project needs
+      # are installed explicitly in the next step.
+      - name: Set up the Android SDK
+        uses: android-actions/setup-android@v3
+
+      # compileSdk/targetSdk are 36 in android/variables.gradle, so the matching
+      # platform and build-tools are what get installed here. `yes |` answers the
+      # licence prompts; the explicit --licenses call covers any package that
+      # Gradle may pull in later.
+      - name: Accept licenses and install SDK packages
+        run: |
+          yes | sdkmanager --licenses > /dev/null
+          sdkmanager --install \
+            "platform-tools" \
+            "platforms;android-36" \
+            "build-tools;36.0.0"
+
+      # Caches ~/.gradle (dependencies and wrapper distributions) keyed on the
+      # Gradle files, so repeat builds skip re-downloading the plugin and androidx.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      # node_modules must still be present: android/capacitor.settings.gradle
+      # points Gradle at ../node_modules/@capacitor/* as included builds.
+      - name: Build the debug APK
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # Fail loudly here rather than uploading an empty artifact.
+      - name: Verify the APK exists
+        run: |
+          APK="android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ ! -f "$APK" ]; then
+            echo "::error::Expected APK not found at $APK"
+            find android/app/build/outputs -name "*.apk" -print || true
+            exit 1
+          fi
+          echo "Built $APK ($(du -h "$APK" | cut -f1))"
+
+      - name: Upload the APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: study-dashboard-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
