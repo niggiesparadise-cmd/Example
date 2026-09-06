@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, use, useMemo, type ReactNode } from "react";
+import { countPendingInvitations } from "@/features/challenges/api";
 import { listExams } from "@/features/exams/api";
 import { listTasks } from "@/features/tasks/api";
 import { useDataVersion } from "@/features/shared/data-version";
@@ -10,9 +11,11 @@ import { addDays, todayIso } from "@/lib/date";
 export interface BadgeCounts {
   tasks: number;
   exams: number;
+  /** Invitations addressed to you and not yet answered. */
+  challenges: number;
 }
 
-const BadgeCountsContext = createContext<BadgeCounts>({ tasks: 0, exams: 0 });
+const BadgeCountsContext = createContext<BadgeCounts>({ tasks: 0, exams: 0, challenges: 0 });
 
 /**
  * Live counts for the navigation badges.
@@ -27,6 +30,7 @@ export function BadgeCountsProvider({ children }: { children: ReactNode }) {
   const dataVersion = useDataVersion();
   const tasks = useQuery(listTasks, [dataVersion]);
   const exams = useQuery(listExams, [dataVersion]);
+  const invitations = useQuery(countPendingInvitations, [dataVersion]);
 
   const value = useMemo<BadgeCounts>(() => {
     const today = todayIso();
@@ -39,8 +43,9 @@ export function BadgeCountsProvider({ children }: { children: ReactNode }) {
       ).length,
       exams: (exams.data ?? []).filter((exam) => exam.exam_date >= today && exam.exam_date <= fortnightOut)
         .length,
+      challenges: invitations.data ?? 0,
     };
-  }, [tasks.data, exams.data]);
+  }, [tasks.data, exams.data, invitations.data]);
 
   return <BadgeCountsContext value={value}>{children}</BadgeCountsContext>;
 }

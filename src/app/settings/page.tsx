@@ -23,6 +23,7 @@ import {
   LOCK_INTERVALS,
   type LockIntervalId,
 } from "@/features/auth/lock-settings";
+import { AvatarPicker } from "@/features/profile/avatar-picker";
 import { updateProfile } from "@/features/profile/api";
 import { useProfile } from "@/features/profile/use-profile";
 import {
@@ -39,6 +40,7 @@ export default function SettingsPage() {
   const router = useRouter();
 
   const [fullName, setFullName] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [program, setProgram] = useState<string | null>(null);
   const [term, setTerm] = useState<string | null>(null);
   const [progress, setProgress] = useState<SeedProgress | undefined>(undefined);
@@ -48,6 +50,16 @@ export default function SettingsPage() {
   const nameValue = fullName ?? profile?.full_name ?? "";
   const programValue = program ?? profile?.program ?? "";
   const termValue = term ?? profile?.term ?? "";
+  const usernameValue = username ?? profile?.username ?? "";
+
+  /*
+   * The same rule the column's CHECK constraint enforces. A username is how
+   * other people find you, so it is lowercase and unambiguous by design.
+   */
+  const usernameError =
+    usernameValue === "" || /^[a-z0-9_]{3,24}$/.test(usernameValue)
+      ? undefined
+      : "3–24 characters: lowercase letters, numbers and underscores.";
 
   const save = useMutation(
     async () =>
@@ -55,6 +67,7 @@ export default function SettingsPage() {
         full_name: nameValue.trim() || null,
         program: programValue.trim() || null,
         term: termValue.trim() || null,
+        username: usernameValue.trim() || null,
       }),
     {
       successMessage: "Profile saved.",
@@ -128,11 +141,22 @@ export default function SettingsPage() {
                 void save.mutate();
               }}
             >
+              <AvatarPicker />
+
               <TextInputField
                 label="Full name"
                 onChange={setFullName}
                 placeholder="Mara Ellison"
                 value={nameValue}
+              />
+
+              <TextInputField
+                errorMessage={usernameError}
+                hint="How classmates find you to send a challenge. Leave it blank to stay unlisted."
+                label="Username"
+                onChange={(value) => setUsername(value.toLowerCase())}
+                placeholder="mara_e"
+                value={usernameValue}
               />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <TextInputField

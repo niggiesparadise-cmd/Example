@@ -67,6 +67,13 @@ export async function listTopics(courseId: string): Promise<Topic[]> {
   );
 }
 
+/** Every topic the user owns, for pickers that span courses. */
+export async function listAllTopics(): Promise<Topic[]> {
+  return unwrap(
+    await getSupabase().from("topics").select("*").order("course_id").order("position"),
+  );
+}
+
 export async function createTopic(input: TopicInput): Promise<Topic> {
   const user_id = await requireUserId();
   return unwrap(await getSupabase().from("topics").insert({ ...input, user_id }).select().single());

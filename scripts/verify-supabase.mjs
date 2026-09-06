@@ -331,6 +331,206 @@ if (intruderError || !intruderSignUp?.session) {
     .insert({ user_id: owner, title: "Forged", content: "x", tags: [], is_pinned: false, course_id: null, topic_id: null });
   record("Another user cannot INSERT rows owned by you", Boolean(forgeError), forgeError?.message ?? "the insert was allowed");
 
+}
+
+// ---------------------------------------------------------------------------
+// 7b. The learning and social features: flashcards, quizzes, challenges.
+// ---------------------------------------------------------------------------
+console.log("\n  Learning features:");
+
+const flashcardCourse = await supabase
+  .from("courses")
+  .insert({ user_id: owner, code: "VERIFY 404", title: "Flashcard parent", color_slot: 4 })
+  .select()
+  .single();
+if (flashcardCourse.data?.id) remember("courses", flashcardCourse.data.id);
+
+// Flashcards: the scheduling columns are the trigger's, so this proves the
+// trigger exists and fires rather than just that a row can be written.
+const { data: card, error: cardError } = await supabase
+  .from("flashcards")
+  .insert({
+    user_id: owner,
+    course_id: flashcardCourse.data?.id ?? null,
+    topic_id: null,
+    front: "Which enzyme does aspirin inhibit?",
+    back: "Cyclo-oxygenase",
+  })
+  .select()
+  .single();
+if (card?.id) remember("flashcards", card.id);
+record(
+  "flashcards: INSERT, with the schedule defaulted",
+  !cardError && card?.due_at != null && card?.review_count === 0,
+  cardError?.message ?? `due_at set, ${card?.review_count} reviews`,
+);
+
+const { error: reviewError } = await supabase
+  .from("flashcard_reviews")
+  .insert({ user_id: owner, flashcard_id: card?.id ?? "", rating: "good", duration_ms: 4200 });
+const { data: reviewed } = await supabase
+  .from("flashcards")
+  .select("*")
+  .eq("id", card?.id ?? "")
+  .maybeSingle();
+record(
+  "flashcard_reviews: the trigger reschedules the card",
+  !reviewError && reviewed?.review_count === 1 && Number(reviewed?.interval_days) > 0,
+  reviewError?.message ?? `interval ${reviewed?.interval_days} days after one "good"`,
+);
+
+// Quizzes, questions and options — the two tables owned through a parent.
+const { data: quiz, error: quizError } = await supabase
+  .from("quizzes")
+  .insert({ user_id: owner, course_id: flashcardCourse.data?.id ?? null, topic_id: null, title: "Verification quiz", description: null })
+  .select()
+  .single();
+if (quiz?.id) remember("quizzes", quiz.id);
+record("quizzes: INSERT", !quizError && Boolean(quiz), quizError?.message ?? "created");
+
+const { data: question, error: questionError } = await supabase
+  .from("quiz_questions")
+  .insert({ quiz_id: quiz?.id ?? "", question: "Is this quiz real?", kind: "true-false", explanation: "It is.", position: 0 })
+  .select()
+  .single();
+record(
+  "quiz_questions: INSERT through the parent quiz's policy",
+  !questionError && Boolean(question),
+  questionError?.message ?? "created",
+);
+
+const { error: optionError } = await supabase.from("quiz_options").insert([
+  { question_id: question?.id ?? "", option_text: "True", is_correct: true, position: 0 },
+  { question_id: question?.id ?? "", option_text: "False", is_correct: false, position: 1 },
+]);
+const { data: readOptions } = await supabase
+  .from("quiz_options")
+  .select("*")
+  .eq("question_id", question?.id ?? "");
+record(
+  "quiz_options: INSERT and SELECT through two levels of ownership",
+  !optionError && readOptions?.length === 2,
+  optionError?.message ?? `${readOptions?.length ?? 0} options`,
+);
+
+const { data: attempt, error: attemptError } = await supabase
+  .from("quiz_attempts")
+  .insert({
+    user_id: owner,
+    quiz_id: quiz?.id ?? "",
+    score: 1,
+    total_questions: 1,
+    duration_seconds: 30,
+    incorrect_question_ids: [],
+  })
+  .select()
+  .single();
+if (attempt?.id) remember("quiz_attempts", attempt.id);
+record("quiz_attempts: INSERT", !attemptError && Boolean(attempt), attemptError?.message ?? "recorded");
+
+// A username, so the second user can find this one.
+const myUsername = `verify${Date.now().toString().slice(-8)}`;
+const { error: usernameError } = await supabase
+  .from("profiles")
+  .update({ username: myUsername })
+  .eq("id", owner);
+record("profiles: username can be set", !usernameError, usernameError?.message ?? myUsername);
+
+// ---------------------------------------------------------------------------
+// 7c. The rules that matter most: a second user against a challenge.
+// ---------------------------------------------------------------------------
+if (intruderSignUp?.session) {
+  console.log("\n  Challenge authorisation:");
+
+  const intruderName = `rival${Date.now().toString().slice(-8)}`;
+  await intruder.from("profiles").update({ username: intruderName }).eq("id", intruderSignUp.user.id);
+
+  // A stranger cannot see a quiz they were never challenged to.
+  const { data: peek } = await intruder.from("quizzes").select("*").eq("id", quiz?.id ?? "");
+  record("Another user cannot see your quiz", (peek?.length ?? 0) === 0, `${peek?.length ?? 0} row(s)`);
+
+  const { data: peekCards } = await intruder.from("flashcards").select("*");
+  record("Another user cannot see your flashcards", (peekCards?.length ?? 0) === 0, `${peekCards?.length ?? 0} row(s)`);
+
+  // Create the challenge through the function.
+  const { data: challengeId, error: challengeError } = await supabase.rpc("create_challenge", {
+    quiz: quiz?.id ?? "",
+    opponent_username: intruderName,
+    challenge_title: "Verification challenge",
+  });
+  record("create_challenge builds the challenge and both participants", !challengeError && Boolean(challengeId), challengeError?.message ?? String(challengeId).slice(0, 8));
+
+  if (challengeId) remember("challenges", challengeId);
+
+  // Now — and only now — the opponent can read the quiz.
+  const { data: nowVisible } = await intruder.from("quizzes").select("*").eq("id", quiz?.id ?? "");
+  const { data: stillHidden } = await intruder.from("flashcards").select("*");
+  record(
+    "Being challenged reveals that quiz and nothing else",
+    (nowVisible?.length ?? 0) === 1 && (stillHidden?.length ?? 0) === 0,
+    `quiz visible: ${nowVisible?.length ?? 0}, flashcards visible: ${stillHidden?.length ?? 0}`,
+  );
+
+  // The creator cannot answer their own invitation.
+  const { error: selfAnswer } = await supabase.rpc("respond_to_challenge", { challenge: challengeId, accept: true });
+  record("Only the invited person can answer the invitation", Boolean(selfAnswer), selfAnswer?.message ?? "the creator was allowed to accept");
+
+  const { error: acceptError } = await intruder.rpc("respond_to_challenge", { challenge: challengeId, accept: true });
+  record("The invited person can accept", !acceptError, acceptError?.message ?? "accepted");
+
+  // Each records their own result.
+  const { error: mineError } = await supabase.rpc("submit_challenge_result", {
+    challenge: challengeId, final_score: 1, question_count: 1, seconds_taken: 40,
+  });
+  record("You can record your own result", !mineError, mineError?.message ?? "recorded");
+
+  // THE rule: the opponent cannot rewrite your score by any route.
+  const { data: tampered } = await intruder
+    .from("challenge_participants")
+    .update({ score: 0, duration_seconds: 9999 })
+    .eq("user_id", owner)
+    .select("id");
+  record(
+    "Another user cannot overwrite your score",
+    (tampered?.length ?? 0) === 0,
+    `${tampered?.length ?? 0} row(s) changed`,
+  );
+
+  const { data: intact } = await supabase
+    .from("challenge_participants")
+    .select("score, duration_seconds")
+    .eq("user_id", owner)
+    .maybeSingle();
+  record(
+    "Your recorded result survives the attempt",
+    intact?.score === 1 && intact?.duration_seconds === 40,
+    `score=${intact?.score} seconds=${intact?.duration_seconds}`,
+  );
+
+  // And cannot be improved by replaying your own submission.
+  const { error: replayError } = await supabase.rpc("submit_challenge_result", {
+    challenge: challengeId, final_score: 1, question_count: 1, seconds_taken: 1,
+  });
+  record("You cannot replay your own submission", Boolean(replayError), replayError?.message ?? "the replay was allowed");
+
+  // An impossible score is refused outright.
+  const { error: cheatError } = await intruder.rpc("submit_challenge_result", {
+    challenge: challengeId, final_score: 99, question_count: 1, seconds_taken: 5,
+  });
+  record("An impossible score is refused", Boolean(cheatError), cheatError?.message ?? "it was accepted");
+
+  // The lookup gives back a handle and nothing more.
+  const { data: found } = await intruder.rpc("search_profiles", { query: myUsername });
+  const columns = found?.[0] ? Object.keys(found[0]).sort().join(",") : "";
+  record(
+    "Username lookup returns only id, username, full_name, avatar_path",
+    columns === "avatar_path,full_name,id,username",
+    columns || "no match",
+  );
+
+  const { data: toosShort } = await intruder.rpc("search_profiles", { query: "ab" });
+  record("Two characters enumerate nothing", (toosShort?.length ?? 0) === 0, `${toosShort?.length ?? 0} row(s)`);
+
   await intruder.auth.signOut();
 }
 

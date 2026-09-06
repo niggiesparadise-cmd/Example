@@ -39,10 +39,22 @@ export function unwrap<T>(result: { data: T | null; error: PostgrestError | null
  * tells the user "Deleted." after deleting nothing at all. Asking for the rows
  * back turns that silent no-op into a real failure.
  */
-export async function deleteRow(
-  table: "courses" | "topics" | "lectures" | "tasks" | "exams" | "notes" | "schedule_events" | "study_sessions",
-  id: string,
-): Promise<void> {
+type DeletableTable =
+  | "courses"
+  | "topics"
+  | "lectures"
+  | "tasks"
+  | "exams"
+  | "notes"
+  | "schedule_events"
+  | "study_sessions"
+  | "flashcards"
+  | "quizzes"
+  | "quiz_questions"
+  | "quiz_options"
+  | "challenges";
+
+export async function deleteRow(table: DeletableTable, id: string): Promise<void> {
   const { data, error } = await getSupabase().from(table).delete().eq("id", id).select("id");
   if (error) throw describeError(error);
   if (!data || data.length === 0) {
