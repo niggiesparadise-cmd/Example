@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Inter, Source_Serif_4 } from "next/font/google";
 import { AppFrame } from "@/components/layout/app-frame";
 import { NativeShell } from "@/components/native/native-shell";
+import { AppLockProvider } from "@/features/auth/app-lock-provider";
 import { AuthGuard } from "@/features/auth/auth-guard";
 import { AuthProvider } from "@/features/auth/auth-provider";
 import { Providers } from "@/components/providers";
@@ -59,9 +60,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <NativeShell />
           <AuthProvider>
-            <AuthGuard>
-              <AppFrame>{children}</AppFrame>
-            </AuthGuard>
+            {/* Sits inside the auth provider because the lock only applies once
+                there is a session to protect, and outside the guard because the
+                lock screen must survive every route it covers. */}
+            <AppLockProvider>
+              <AuthGuard>
+                <AppFrame>{children}</AppFrame>
+              </AuthGuard>
+            </AppLockProvider>
           </AuthProvider>
         </Providers>
       </body>

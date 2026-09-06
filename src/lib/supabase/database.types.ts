@@ -147,6 +147,9 @@ type TableShape<Row, I, U> = {
   Relationships: [];
 };
 
+/** A task insert, minus the column the completion trigger maintains. */
+type TaskInsert = Omit<Insert<Task>, "completed_at">;
+
 export type Database = {
   public: {
     Tables: {
@@ -154,7 +157,15 @@ export type Database = {
       courses: TableShape<Course, Insert<Course> & { user_id: string }, Update<Course>>;
       topics: TableShape<Topic, Insert<Topic> & { user_id: string }, Update<Topic>>;
       lectures: TableShape<Lecture, Insert<Lecture> & { user_id: string }, Update<Lecture>>;
-      tasks: TableShape<Task, Insert<Task> & { user_id: string }, Update<Task>>;
+      /**
+       * `completed_at` is omitted from both payloads: the `tasks_sync_completion`
+       * trigger derives it from `status` and owns it outright, the same way
+       * Postgres owns `study_sessions.duration_minutes` below. Letting a client
+       * send it meant an edit to an already-finished task shipped
+       * `completed_at: null`, and the trigger re-stamped `now()` over the real
+       * completion time.
+       */
+      tasks: TableShape<Task, TaskInsert & { user_id: string }, Partial<TaskInsert>>;
       exams: TableShape<Exam, Insert<Exam> & { user_id: string }, Update<Exam>>;
       notes: TableShape<Note, Insert<Note> & { user_id: string }, Update<Note>>;
       schedule_events: TableShape<ScheduleEvent, Insert<ScheduleEvent> & { user_id: string }, Update<ScheduleEvent>>;

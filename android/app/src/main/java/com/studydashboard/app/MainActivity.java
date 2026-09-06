@@ -11,6 +11,14 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        /*
+         * Both plugins are local to this app rather than npm packages, so they
+         * have to be registered by hand — and before super.onCreate(), which is
+         * where the Bridge is built and the plugin registry is frozen.
+         */
+        registerPlugin(BiometricAuthPlugin.class);
+        registerPlugin(SecureStoragePlugin.class);
+
         super.onCreate(savedInstanceState);
 
         /*

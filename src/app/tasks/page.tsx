@@ -1,10 +1,23 @@
 "use client";
 
-import { Button, Card, Checkbox, Chip, Label, ToggleButton, ToggleButtonGroup } from "@heroui/react";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Chip,
+  Label,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@heroui/react";
 import { ListChecks, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { CourseDot } from "@/components/ui/course-dot";
-import { ErrorState, ListSkeleton, LoadingRegion, NoData } from "@/components/ui/data-states";
+import {
+  ErrorState,
+  ListSkeleton,
+  LoadingRegion,
+  NoData,
+} from "@/components/ui/data-states";
 import { ConfirmDeleteDialog } from "@/components/ui/form-dialog";
 import { DueChip, PriorityChip } from "@/components/ui/meta-chips";
 import { PageHeader } from "@/components/ui/page-header";
@@ -29,11 +42,27 @@ export default function TasksPage() {
   const [filter, setFilter] = useState<Filter>("open");
   const [editing, setEditing] = useState<Task | undefined>(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState<Task | undefined>(undefined);
+  const [pendingDelete, setPendingDelete] = useState<Task | undefined>(
+    undefined,
+  );
+
+  // Which row is mid-write, so only that checkbox goes disabled. Disabling on
+  // `toggle.isPending` froze every checkbox in the list on any single tick.
+  const [togglingId, setTogglingId] = useState<string | undefined>(undefined);
 
   const toggle = useMutation(
-    async (id: string, done: boolean) => setTaskStatus(id, done ? "done" : "todo"),
-    { errorMessage: "Couldn't update the task", onSuccess: () => void refetch() },
+    async (id: string, done: boolean) => {
+      setTogglingId(id);
+      try {
+        return await setTaskStatus(id, done ? "done" : "todo");
+      } finally {
+        setTogglingId(undefined);
+      }
+    },
+    {
+      errorMessage: "Couldn't update the task",
+      onSuccess: () => void refetch(),
+    },
   );
 
   const remove = useMutation(async (id: string) => deleteTask(id), {
@@ -49,7 +78,11 @@ export default function TasksPage() {
   const courses = data?.courses ?? [];
   const courseById = new Map(courses.map((course) => [course.id, course]));
   const visible = allTasks.filter((task) =>
-    filter === "all" ? true : filter === "done" ? task.status === "done" : task.status !== "done",
+    filter === "all"
+      ? true
+      : filter === "done"
+        ? task.status === "done"
+        : task.status !== "done",
   );
   const openCount = allTasks.filter((task) => task.status !== "done").length;
 
@@ -97,14 +130,22 @@ export default function TasksPage() {
           <ListSkeleton rows={5} />
         </>
       ) : error ? (
-        <ErrorState error={error} onRetry={() => void refetch()} title="Couldn't load your tasks" />
+        <ErrorState
+          error={error}
+          onRetry={() => void refetch()}
+          title="Couldn't load your tasks"
+        />
       ) : visible.length === 0 ? (
         <Card className="border border-border p-8">
           <NoData
             action={
               allTasks.length === 0 ? (
                 <Button onPress={() => openForm()} size="sm" variant="primary">
-                  <Plus aria-hidden="true" className="size-4" strokeWidth={2.25} />
+                  <Plus
+                    aria-hidden="true"
+                    className="size-4"
+                    strokeWidth={2.25}
+                  />
                   Add your first task
                 </Button>
               ) : undefined
@@ -116,7 +157,13 @@ export default function TasksPage() {
                   ? "Nothing completed yet."
                   : "Everything is done — nice."
             }
-            icon={<ListChecks aria-hidden="true" className="size-5" strokeWidth={1.75} />}
+            icon={
+              <ListChecks
+                aria-hidden="true"
+                className="size-5"
+                strokeWidth={1.75}
+              />
+            }
             title={allTasks.length === 0 ? "No tasks yet" : "Nothing here"}
           />
         </Card>
@@ -124,8 +171,12 @@ export default function TasksPage() {
         <Card className="border border-border p-0">
           <ul className="flex flex-col divide-y divide-border">
             {visible.map((task) => {
-              const course = task.course_id ? courseById.get(task.course_id) : undefined;
-              const daysAway = task.due_date ? daysUntil(task.due_date) : undefined;
+              const course = task.course_id
+                ? courseById.get(task.course_id)
+                : undefined;
+              const daysAway = task.due_date
+                ? daysUntil(task.due_date)
+                : undefined;
               const isDone = task.status === "done";
 
               return (
@@ -133,9 +184,11 @@ export default function TasksPage() {
                   <Checkbox
                     aria-label={`Mark ${task.title} ${isDone ? "not done" : "done"}`}
                     className="mt-0.5"
-                    isDisabled={toggle.isPending}
+                    isDisabled={togglingId === task.id}
                     isSelected={isDone}
-                    onChange={(selected) => void toggle.mutate(task.id, selected)}
+                    onChange={(selected) =>
+                      void toggle.mutate(task.id, selected)
+                    }
                   >
                     <Checkbox.Content>
                       <Checkbox.Control>
@@ -145,7 +198,13 @@ export default function TasksPage() {
                   </Checkbox>
 
                   <div className="min-w-0 flex-1">
-                    <Label className={isDone ? "text-sm font-medium text-muted line-through" : "text-sm font-medium text-foreground"}>
+                    <Label
+                      className={
+                        isDone
+                          ? "text-sm font-medium text-muted line-through"
+                          : "text-sm font-medium text-foreground"
+                      }
+                    >
                       {task.title}
                     </Label>
 
@@ -156,7 +215,9 @@ export default function TasksPage() {
                           {course.code}
                         </span>
                       ) : null}
-                      {task.estimate_minutes ? <span>{formatDuration(task.estimate_minutes)}</span> : null}
+                      {task.estimate_minutes ? (
+                        <span>{formatDuration(task.estimate_minutes)}</span>
+                      ) : null}
                       {task.checklist_total > 0 ? (
                         <span>
                           {task.checklist_done}/{task.checklist_total} steps
@@ -194,7 +255,11 @@ export default function TasksPage() {
                       size="sm"
                       variant="ghost"
                     >
-                      <Pencil aria-hidden="true" className="size-4" strokeWidth={1.85} />
+                      <Pencil
+                        aria-hidden="true"
+                        className="size-4"
+                        strokeWidth={1.85}
+                      />
                     </Button>
                     <Button
                       aria-label={`Delete ${task.title}`}
@@ -203,7 +268,11 @@ export default function TasksPage() {
                       size="sm"
                       variant="ghost"
                     >
-                      <Trash2 aria-hidden="true" className="size-4" strokeWidth={1.85} />
+                      <Trash2
+                        aria-hidden="true"
+                        className="size-4"
+                        strokeWidth={1.85}
+                      />
                     </Button>
                   </div>
                 </li>
@@ -215,7 +284,7 @@ export default function TasksPage() {
 
       {isFormOpen ? (
         <TaskFormDialog
-          key={`${editing?.id ?? 'new'}`}
+          key={`${editing?.id ?? "new"}`}
           courses={courses}
           isOpen={isFormOpen}
           onOpenChange={setIsFormOpen}
@@ -225,7 +294,11 @@ export default function TasksPage() {
       ) : null}
 
       <ConfirmDeleteDialog
-        description={pendingDelete ? `"${pendingDelete.title}" will be permanently deleted.` : ""}
+        description={
+          pendingDelete
+            ? `"${pendingDelete.title}" will be permanently deleted.`
+            : ""
+        }
         isOpen={Boolean(pendingDelete)}
         isPending={remove.isPending}
         onConfirm={() => {

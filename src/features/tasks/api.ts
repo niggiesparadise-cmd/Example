@@ -1,7 +1,8 @@
-import type { Insert, Task, TaskStatus, Update } from "@/lib/supabase/database.types";
-import { getSupabase, requireUserId, unwrap } from "../shared/api";
+import type { Insert, Task, TaskStatus } from "@/lib/supabase/database.types";
+import { deleteRow, getSupabase, requireUserId, unwrap } from "../shared/api";
 
-export type TaskInput = Insert<Task>;
+/** `completed_at` is excluded — the completion trigger owns it. */
+export type TaskInput = Omit<Insert<Task>, "completed_at">;
 
 export async function listTasks(): Promise<Task[]> {
   return unwrap(
@@ -19,7 +20,7 @@ export async function createTask(input: TaskInput): Promise<Task> {
   return unwrap(await getSupabase().from("tasks").insert({ ...input, user_id }).select().single());
 }
 
-export async function updateTask(id: string, input: Update<Task>): Promise<Task> {
+export async function updateTask(id: string, input: Partial<TaskInput>): Promise<Task> {
   return unwrap(await getSupabase().from("tasks").update(input).eq("id", id).select().single());
 }
 
@@ -34,6 +35,5 @@ export async function setTaskStatus(id: string, status: TaskStatus): Promise<Tas
 }
 
 export async function deleteTask(id: string): Promise<void> {
-  const { error } = await getSupabase().from("tasks").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("tasks", id);
 }

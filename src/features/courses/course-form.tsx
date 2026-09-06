@@ -167,7 +167,10 @@ export function CourseFormDialog({
           selectedKey={String(form.color_slot)}
         >
           <Label>Colour</Label>
-          <Select.Trigger />
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
           <Select.Popover>
             <ListBox>
               {(Object.keys(COLOR_NAMES) as unknown as ColorSlot[]).map((slot) => (

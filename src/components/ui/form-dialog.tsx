@@ -34,19 +34,28 @@ export function FormDialog({
     <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
       <Modal.Backdrop>
         <Modal.Container>
-          <Modal.Dialog>
+          <Modal.Dialog className="flex max-h-[90dvh] flex-col">
+            {/*
+            The form is the flex column and the body is the only part that
+            scrolls. Without this the taller forms (exam, event, course) simply
+            overflowed the dialog on a phone: the content ran past the bottom
+            edge with no scroll container anywhere in the tree, which put Save
+            and Cancel outside the viewport and made those forms impossible to
+            submit on an Android screen.
+          */}
           <form
+              className="flex min-h-0 flex-col"
             noValidate
             onSubmit={(event) => {
               event.preventDefault();
               onSubmit();
             }}
           >
-            <Modal.Header>
+              <Modal.Header className="shrink-0">
               <Modal.Heading>{title}</Modal.Heading>
             </Modal.Header>
 
-            <Modal.Body className="flex flex-col gap-4">
+              <Modal.Body className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain">
               {error ? (
                 <Alert status="danger">
                   <Alert.Content>
@@ -57,7 +66,7 @@ export function FormDialog({
               {children}
             </Modal.Body>
 
-            <Modal.Footer className="gap-2">
+              <Modal.Footer className="shrink-0 gap-2">
               {/* Cancel always discards and closes — no silent partial saves. */}
               <Button isDisabled={isPending} onPress={() => onOpenChange(false)} variant="tertiary">
                 Cancel

@@ -2,14 +2,46 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
-import { ConfigErrorScreen, FullPageLoading } from "@/components/ui/data-states";
+import {
+  ConfigErrorScreen,
+  FullPageLoading,
+} from "@/components/ui/data-states";
 import { useAuth } from "./auth-provider";
 
-/** Routes reachable without a session. Everything else requires one. */
-const PUBLIC_ROUTES = ["/sign-in", "/sign-up", "/forgot-password", "/reset-password"];
+/**
+ * Routes reachable without a session.
+ *
+ * `/reset-password` is split out from the rest. Supabase's recovery link puts a
+ * real (if limited) session in the URL fragment, so by the time that page runs
+ * the visitor *is* signed in — bouncing signed-in users off it, as the other
+ * three routes require, made the password reset impossible to complete: the
+ * page redirected to the dashboard before it could render its form, so the only
+ * branch a user could ever see was "this link has expired". It is therefore
+ * reachable in both states.
+ */
+const SIGNED_OUT_ONLY_ROUTES = ["/sign-in", "/sign-up", "/forgot-password"];
+const RECOVERY_ROUTE = "/reset-password";
 
+function matches(pathname: string, route: string): boolean {
+  return pathname === route || pathname.startsWith(`${route}/`);
+}
+
+/** True for any route that does not require an established session. */
 export function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+  return (
+    matches(pathname, RECOVERY_ROUTE) ||
+    SIGNED_OUT_ONLY_ROUTES.some((route) => matches(pathname, route))
+  );
+}
+
+/** True only for routes a signed-in user should be redirected away from. */
+export function isSignedOutOnlyRoute(pathname: string): boolean {
+  return SIGNED_OUT_ONLY_ROUTES.some((route) => matches(pathname, route));
+}
+
+/** True while the user is completing a password recovery. */
+export function isRecoveryRoute(pathname: string): boolean {
+  return matches(pathname, RECOVERY_ROUTE);
 }
 
 /**
@@ -27,19 +59,22 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isPublic = isPublicRoute(pathname);
+  const isSignedOutOnly = isSignedOutOnlyRoute(pathname);
 
   useEffect(() => {
     if (isLoading || configError) return;
     if (!session && !isPublic) router.replace("/sign-in/");
-    if (session && isPublic) router.replace("/");
-  }, [configError, isLoading, isPublic, router, session]);
+    if (session && isSignedOutOnly) router.replace("/");
+  }, [configError, isLoading, isPublic, isSignedOutOnly, router, session]);
 
   if (configError) return <ConfigErrorScreen message={configError} />;
   if (isLoading) return <FullPageLoading label="Restoring your session…" />;
 
   // Render nothing through the redirect rather than flashing the wrong screen.
-  if (!session && !isPublic) return <FullPageLoading label="Redirecting to sign in…" />;
-  if (session && isPublic) return <FullPageLoading label="Taking you to your dashboard…" />;
+  if (!session && !isPublic)
+    return <FullPageLoading label="Redirecting to sign in…" />;
+  if (session && isSignedOutOnly)
+    return <FullPageLoading label="Taking you to your dashboard…" />;
 
   return <>{children}</>;
 }

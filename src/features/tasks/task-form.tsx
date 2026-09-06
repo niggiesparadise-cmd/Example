@@ -104,9 +104,11 @@ export function TaskFormDialog({
         estimate_minutes: form.estimate_minutes.trim() === "" ? null : Number(form.estimate_minutes),
         checklist_done: Number(form.checklist_done || 0),
         checklist_total: Number(form.checklist_total || 0),
-        // A trigger derives this from `status`; sending it risks disagreement.
-        completed_at: null,
       };
+      // `completed_at` is deliberately absent. A trigger derives it from
+      // `status`, and sending `null` alongside an unchanged `done` status made
+      // the trigger re-stamp `now()` — silently destroying the original
+      // completion time every time a finished task was edited.
       return task ? updateTask(task.id, payload) : createTask(payload);
     },
     {
@@ -147,7 +149,10 @@ export function TaskFormDialog({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Select onSelectionChange={(key) => set("course_id", String(key))} selectedKey={form.course_id}>
           <Label>Course</Label>
-          <Select.Trigger />
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
           <Select.Popover>
             <ListBox>
               <ListBox.Item id="none" textValue="No course">
@@ -164,7 +169,10 @@ export function TaskFormDialog({
 
         <Select onSelectionChange={(key) => set("kind", String(key) as TaskKind)} selectedKey={form.kind}>
           <Label>Type</Label>
-          <Select.Trigger />
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
           <Select.Popover>
             <ListBox>
               {KINDS.map((kind) => (
@@ -183,7 +191,10 @@ export function TaskFormDialog({
           selectedKey={form.priority}
         >
           <Label>Priority</Label>
-          <Select.Trigger />
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
           <Select.Popover>
             <ListBox>
               {PRIORITIES.map((priority) => (
@@ -197,7 +208,10 @@ export function TaskFormDialog({
 
         <Select onSelectionChange={(key) => set("status", String(key) as TaskStatus)} selectedKey={form.status}>
           <Label>Status</Label>
-          <Select.Trigger />
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
           <Select.Popover>
             <ListBox>
               {STATUSES.map((status) => (

@@ -1,5 +1,5 @@
 import type { Insert, ScheduleEvent, Update } from "@/lib/supabase/database.types";
-import { getSupabase, requireUserId, unwrap } from "../shared/api";
+import { deleteRow, getSupabase, requireUserId, unwrap } from "../shared/api";
 
 export type ScheduleEventInput = Insert<ScheduleEvent>;
 
@@ -30,6 +30,5 @@ export async function updateEvent(id: string, input: Update<ScheduleEvent>): Pro
 }
 
 export async function deleteEvent(id: string): Promise<void> {
-  const { error } = await getSupabase().from("schedule_events").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("schedule_events", id);
 }

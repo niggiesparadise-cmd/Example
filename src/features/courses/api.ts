@@ -1,5 +1,5 @@
 import type { Course, Insert, Lecture, Topic, Update } from "@/lib/supabase/database.types";
-import { getSupabase, requireUserId, unwrap } from "../shared/api";
+import { deleteRow, getSupabase, requireUserId, unwrap } from "../shared/api";
 
 export type CourseInput = Insert<Course>;
 export type TopicInput = Insert<Topic>;
@@ -58,8 +58,7 @@ export async function updateCourse(id: string, input: Update<Course>): Promise<C
 
 /** Cascades to topics and lectures; tasks/exams/notes are orphaned, not deleted. */
 export async function deleteCourse(id: string): Promise<void> {
-  const { error } = await getSupabase().from("courses").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("courses", id);
 }
 
 export async function listTopics(courseId: string): Promise<Topic[]> {
@@ -73,6 +72,10 @@ export async function createTopic(input: TopicInput): Promise<Topic> {
   return unwrap(await getSupabase().from("topics").insert({ ...input, user_id }).select().single());
 }
 
+export async function updateTopic(id: string, input: Update<Topic>): Promise<Topic> {
+  return unwrap(await getSupabase().from("topics").update(input).eq("id", id).select().single());
+}
+
 export async function setTopicComplete(id: string, isComplete: boolean): Promise<Topic> {
   return unwrap(
     await getSupabase().from("topics").update({ is_complete: isComplete }).eq("id", id).select().single(),
@@ -80,8 +83,7 @@ export async function setTopicComplete(id: string, isComplete: boolean): Promise
 }
 
 export async function deleteTopic(id: string): Promise<void> {
-  const { error } = await getSupabase().from("topics").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("topics", id);
 }
 
 export async function listLectures(courseId: string): Promise<Lecture[]> {
@@ -95,7 +97,10 @@ export async function createLecture(input: LectureInput): Promise<Lecture> {
   return unwrap(await getSupabase().from("lectures").insert({ ...input, user_id }).select().single());
 }
 
+export async function updateLecture(id: string, input: Update<Lecture>): Promise<Lecture> {
+  return unwrap(await getSupabase().from("lectures").update(input).eq("id", id).select().single());
+}
+
 export async function deleteLecture(id: string): Promise<void> {
-  const { error } = await getSupabase().from("lectures").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("lectures", id);
 }

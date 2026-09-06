@@ -3,6 +3,7 @@
 import { createContext, use, useMemo, type ReactNode } from "react";
 import { listExams } from "@/features/exams/api";
 import { listTasks } from "@/features/tasks/api";
+import { useDataVersion } from "@/features/shared/data-version";
 import { useQuery } from "@/features/shared/use-query";
 import { addDays, todayIso } from "@/lib/date";
 
@@ -21,8 +22,11 @@ const BadgeCountsContext = createContext<BadgeCounts>({ tasks: 0, exams: 0 });
  * next fortnight.
  */
 export function BadgeCountsProvider({ children }: { children: ReactNode }) {
-  const tasks = useQuery(listTasks, []);
-  const exams = useQuery(listExams, []);
+  // This provider lives in the app frame, which navigation never remounts, so
+  // without the version dependency the badges froze at their first-load values.
+  const dataVersion = useDataVersion();
+  const tasks = useQuery(listTasks, [dataVersion]);
+  const exams = useQuery(listExams, [dataVersion]);
 
   const value = useMemo<BadgeCounts>(() => {
     const today = todayIso();
