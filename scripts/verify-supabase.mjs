@@ -336,6 +336,34 @@ if (intruderError || !intruderSignUp?.session) {
 // ---------------------------------------------------------------------------
 // 7b. The learning and social features: flashcards, quizzes, challenges.
 // ---------------------------------------------------------------------------
+
+/*
+ * Check the newer migrations are actually applied before testing them.
+ *
+ * Without this, a project still on 0004 produces a dozen confusing failures
+ * ("could not find the function in the schema cache") that all mean the same
+ * thing. One clear message is more use than thirteen symptoms of it.
+ */
+const { error: schemaProbe } = await supabase.from("flashcards").select("id").limit(1);
+const learningSchemaMissing =
+  schemaProbe && /does not exist|schema cache|relation/i.test(schemaProbe.message);
+
+if (learningSchemaMissing) {
+  record(
+    "Migrations 0005 and 0006 are applied",
+    false,
+    "the learning and social tables are missing",
+  );
+  console.log(
+    "\n  Everything above passed. The checks below need two migrations that have\n" +
+      "  not been applied to this project yet:\n\n" +
+      "    supabase/migrations/0005_learning_features.sql\n" +
+      "    supabase/migrations/0006_social_challenges.sql\n\n" +
+      "  Paste each into the Supabase SQL editor, in that order, then re-run this\n" +
+      "  workflow. 0001-0004 are already applied and are not re-run.\n",
+  );
+} else {
+
 console.log("\n  Learning features:");
 
 const flashcardCourse = await supabase
@@ -472,8 +500,14 @@ if (intruderSignUp?.session) {
   );
 
   // The creator cannot answer their own invitation.
+  // Specifically the authorisation refusal — "the function does not exist"
+  // must not be allowed to look like a passing security check.
   const { error: selfAnswer } = await supabase.rpc("respond_to_challenge", { challenge: challengeId, accept: true });
-  record("Only the invited person can answer the invitation", Boolean(selfAnswer), selfAnswer?.message ?? "the creator was allowed to accept");
+  record(
+    "Only the invited person can answer the invitation",
+    /not yours to answer|already been answered/i.test(selfAnswer?.message ?? ""),
+    selfAnswer?.message ?? "the creator was allowed to accept",
+  );
 
   const { error: acceptError } = await intruder.rpc("respond_to_challenge", { challenge: challengeId, accept: true });
   record("The invited person can accept", !acceptError, acceptError?.message ?? "accepted");
@@ -511,13 +545,21 @@ if (intruderSignUp?.session) {
   const { error: replayError } = await supabase.rpc("submit_challenge_result", {
     challenge: challengeId, final_score: 1, question_count: 1, seconds_taken: 1,
   });
-  record("You cannot replay your own submission", Boolean(replayError), replayError?.message ?? "the replay was allowed");
+  record(
+    "You cannot replay your own submission",
+    /already finished/i.test(replayError?.message ?? ""),
+    replayError?.message ?? "the replay was allowed",
+  );
 
   // An impossible score is refused outright.
   const { error: cheatError } = await intruder.rpc("submit_challenge_result", {
     challenge: challengeId, final_score: 99, question_count: 1, seconds_taken: 5,
   });
-  record("An impossible score is refused", Boolean(cheatError), cheatError?.message ?? "it was accepted");
+  record(
+    "An impossible score is refused",
+    /not possible/i.test(cheatError?.message ?? ""),
+    cheatError?.message ?? "it was accepted",
+  );
 
   // The lookup gives back a handle and nothing more.
   const { data: found } = await intruder.rpc("search_profiles", { query: myUsername });
@@ -533,6 +575,8 @@ if (intruderSignUp?.session) {
 
   await intruder.auth.signOut();
 }
+
+} // end of the learning/social checks
 
 // 8. Clean up everything this run created.
 for (const [table, ids] of Object.entries(created)) {

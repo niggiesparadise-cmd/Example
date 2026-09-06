@@ -63,6 +63,9 @@ data.
 | Tasks | Full CRUD, complete/incomplete, due date, priority, course link, filters |
 | Exams | Full CRUD, countdown, weighting, revision progress, topics |
 | Notes | Full CRUD plus full-text search running in Postgres |
+| Flashcards | Full CRUD, a 3D flip, four ratings, and a schedule the database owns — rating a card inserts a review and a trigger decides when it returns |
+| Quizzes | Multiple-choice and true/false, built inline; immediate feedback with the explanation, a score screen, retry, and a replay of only the questions you got wrong |
+| Challenges | Invite somebody by username to take one of your quizzes; both scores, a verdict, and every state change through a database function rather than a table write |
 | Schedule | Full CRUD on a navigable week view |
 | Study sessions | Start/stop timer whose state lives in the database, so it survives a restart |
 | Analytics | Total and weekly hours, hours by course, completion rate, streak, activity over time — computed from real sessions |
@@ -228,8 +231,29 @@ order:
 | `0002_rls_policies.sql` | Row Level Security on every table |
 | `0003_triggers.sql` | `updated_at`, auto-profile on signup, task completion sync |
 | `0004_grants.sql` | Grants for `authenticated`; revokes everything from `anon` |
+| `0005_learning_features.sql` | Flashcards (with a scheduling trigger), quizzes, questions, options, attempts — plus their RLS and grants |
+| `0006_social_challenges.sql` | `profiles.username` and `profiles.avatar_path`, challenges, the security-definer functions, and the private `avatars` storage bucket with its policies |
+
+`0005` and `0006` are additive: they create new objects and widen two read
+policies, and they change nothing that `0001`–`0004` established. Apply them in
+order after the first four.
 
 With the Supabase CLI instead: `supabase db push`.
+
+#### What 0006 adds beyond tables
+
+- **A username**, which is the only handle another person can find you by.
+  Optional — leaving it blank keeps the account unlisted.
+- **Three functions** that own the operations a policy cannot express on its
+  own: `create_challenge` (one transaction across two tables),
+  `respond_to_challenge` (only the invited person, only while pending) and
+  `submit_challenge_result` (only ever your own row, and only once).
+- **`search_profiles`**, the controlled directory: a handle, a display name and
+  an avatar path, for signed-in callers, on three characters or more, capped at
+  ten results. Never an email, never the whole table.
+- **A private `avatars` bucket**, readable only by you and by people you share a
+  challenge with, writable only inside your own folder, capped at 2 MB and
+  restricted to JPEG, PNG and WebP.
 
 ### 5. Verify the connection
 
