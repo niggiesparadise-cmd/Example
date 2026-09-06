@@ -344,23 +344,26 @@ if (intruderError || !intruderSignUp?.session) {
  * ("could not find the function in the schema cache") that all mean the same
  * thing. One clear message is more use than thirteen symptoms of it.
  */
+const missingTable = /does not exist|schema cache|relation/i;
 const { error: schemaProbe } = await supabase.from("flashcards").select("id").limit(1);
-const learningSchemaMissing =
-  schemaProbe && /does not exist|schema cache|relation/i.test(schemaProbe.message);
+const { error: sublectureProbe } = await supabase.from("sublectures").select("id").limit(1);
 
-if (learningSchemaMissing) {
-  record(
-    "Migrations 0005 and 0006 are applied",
-    false,
-    "the learning and social tables are missing",
-  );
+const missing = [];
+if (schemaProbe && missingTable.test(schemaProbe.message)) {
+  missing.push("supabase/migrations/0005_learning_features.sql", "supabase/migrations/0006_social_challenges.sql");
+}
+if (sublectureProbe && missingTable.test(sublectureProbe.message)) {
+  missing.push("supabase/migrations/0007_sublectures_and_notifications.sql");
+}
+
+if (missing.length > 0) {
+  record("Every migration is applied", false, `${missing.length} migration(s) missing`);
   console.log(
-    "\n  Everything above passed. The checks below need two migrations that have\n" +
-      "  not been applied to this project yet:\n\n" +
-      "    supabase/migrations/0005_learning_features.sql\n" +
-      "    supabase/migrations/0006_social_challenges.sql\n\n" +
-      "  Paste each into the Supabase SQL editor, in that order, then re-run this\n" +
-      "  workflow. 0001-0004 are already applied and are not re-run.\n",
+    "\n  Everything above passed. The checks below need migrations that have not\n" +
+      "  been applied to this project yet:\n\n" +
+      missing.map((file) => `    ${file}`).join("\n") +
+      "\n\n  Paste each into the Supabase SQL editor, in that order, then re-run this\n" +
+      "  workflow. Migrations already applied are not re-run.\n",
   );
 } else {
 
@@ -574,6 +577,104 @@ if (intruderSignUp?.session) {
   record("Two characters enumerate nothing", (toosShort?.length ?? 0) === 0, `${toosShort?.length ?? 0} row(s)`);
 
   await intruder.auth.signOut();
+}
+
+
+// ---------------------------------------------------------------------------
+// 7d. Sublectures and notifications.
+// ---------------------------------------------------------------------------
+console.log("\n  Sublectures and notifications:");
+
+const { data: subCourse } = await supabase
+  .from("courses")
+  .insert({ user_id: owner, code: "VERIFY 505", title: "Sublecture parent", color_slot: 5 })
+  .select()
+  .single();
+if (subCourse?.id) remember("courses", subCourse.id);
+
+const { data: subTopic } = await supabase
+  .from("topics")
+  .insert({ user_id: owner, course_id: subCourse?.id ?? "", title: "Verification topic", position: 0, is_complete: false })
+  .select()
+  .single();
+
+const { data: sublecture, error: sublectureError } = await supabase
+  .from("sublectures")
+  .insert({
+    user_id: owner,
+    topic_id: subTopic?.id ?? "",
+    title: "Verification sublecture",
+    description: null,
+    scheduled_date: null,
+    completed_at: null,
+    position: 0,
+  })
+  .select()
+  .single();
+if (sublecture?.id) remember("sublectures", sublecture.id);
+record("sublectures: INSERT under your own topic", !sublectureError && Boolean(sublecture), sublectureError?.message ?? "created");
+
+const { data: ticked, error: tickError } = await supabase
+  .from("sublectures")
+  .update({ completed_at: new Date().toISOString() })
+  .eq("id", sublecture?.id ?? "")
+  .select()
+  .single();
+record("sublectures: UPDATE marks completion", !tickError && ticked?.completed_at !== null, tickError?.message ?? "completed");
+
+const { data: notification, error: notificationError } = await supabase
+  .from("notifications")
+  .insert({
+    user_id: owner,
+    kind: "study-reminder",
+    title: "Verification reminder",
+    body: null,
+    data: {},
+    dedupe_key: `verify:${Date.now()}`,
+  })
+  .select()
+  .single();
+if (notification?.id) remember("notifications", notification.id);
+record("notifications: INSERT for yourself", !notificationError && Boolean(notification), notificationError?.message ?? "created");
+
+const { data: readMarked, error: readError } = await supabase
+  .from("notifications")
+  .update({ read_at: new Date().toISOString() })
+  .eq("id", notification?.id ?? "")
+  .select()
+  .single();
+record("notifications: UPDATE marks as read", !readError && readMarked?.read_at !== null, readError?.message ?? "read");
+
+// The dedupe index: the same reminder twice must produce one row.
+const sharedKey = `verify-dupe:${Date.now()}`;
+const twice = { user_id: owner, kind: "study-reminder", title: "Same fact", body: null, data: {}, dedupe_key: sharedKey };
+await supabase.from("notifications").upsert([twice], { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+await supabase.from("notifications").upsert([twice], { onConflict: "user_id,dedupe_key", ignoreDuplicates: true });
+const { data: dupes } = await supabase.from("notifications").select("id").eq("dedupe_key", sharedKey);
+for (const row of dupes ?? []) remember("notifications", row.id);
+record("notifications: dedupe_key keeps one fact to one row", (dupes?.length ?? 0) === 1, `${dupes?.length ?? 0} row(s)`);
+
+if (intruderSignUp?.session) {
+  const { data: seenSub } = await intruder.from("sublectures").select("*");
+  record("Another user cannot see your sublectures", (seenSub?.length ?? 0) === 0, `${seenSub?.length ?? 0} row(s)`);
+
+  const { data: seenNotif } = await intruder.from("notifications").select("*").eq("user_id", owner);
+  record("Another user cannot read your notifications", (seenNotif?.length ?? 0) === 0, `${seenNotif?.length ?? 0} row(s)`);
+
+  const { data: touched } = await intruder
+    .from("notifications")
+    .update({ read_at: new Date().toISOString() })
+    .eq("user_id", owner)
+    .select("id");
+  record("Another user cannot mark your notifications read", (touched?.length ?? 0) === 0, `${touched?.length ?? 0} row(s)`);
+
+  const { data: wiped } = await intruder.from("sublectures").delete().eq("user_id", owner).select("id");
+  record("Another user cannot delete your sublectures", (wiped?.length ?? 0) === 0, `${wiped?.length ?? 0} row(s)`);
+
+  const { error: forged } = await intruder
+    .from("notifications")
+    .insert({ user_id: owner, kind: "challenge-result", title: "FAKE", body: null, data: {}, dedupe_key: null });
+  record("Another user cannot forge a notification for you", Boolean(forged), forged?.message ?? "the insert was allowed");
 }
 
 } // end of the learning/social checks

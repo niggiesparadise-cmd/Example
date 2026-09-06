@@ -29,6 +29,8 @@
   --duration-glass-fast: 140ms;
   --duration-glass: 240ms;
   --duration-glass-slow: 420ms;
+  /* Long enough to read as deliberate, short enough not to be in the way. */
+  --duration-theme-wipe: 620ms;
 }
 
 /*
@@ -329,6 +331,47 @@
   .answer-wrong {
     animation: answer-wrong 200ms var(--ease-glass) 1;
   }
+
+  /*
+   * The theme change.
+   *
+   * A single fixed circle, positioned at the button that was tapped, scaled up
+   * until it covers the viewport. It sits above everything, so the theme swaps
+   * underneath it unseen and is simply revealed when the circle fades.
+   *
+   * `transform` and `opacity` only — both composited, so nothing on the page
+   * reflows, the scroll position does not move, and no other element repaints.
+   * A `clip-path` circle would animate on the main thread; scaling a small
+   * element does not.
+   */
+  .theme-wipe {
+    position: fixed;
+    /* 1px wide, then scaled — the browser rasterises it once at this size. */
+    width: 2px;
+    height: 2px;
+    margin: -1px 0 0 -1px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 100;
+    will-change: transform, opacity;
+    animation: theme-wipe-out var(--duration-theme-wipe) var(--ease-glass) forwards;
+  }
+
+  @keyframes theme-wipe-out {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    /* Fully covered well before the end, so the swap underneath is never seen. */
+    55% {
+      transform: scale(var(--theme-wipe-scale));
+      opacity: 1;
+    }
+    100% {
+      transform: scale(var(--theme-wipe-scale));
+      opacity: 0;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -347,6 +390,20 @@
   }
   .glass-interactive:active {
     transform: none !important;
+  }
+
+  /*
+   * No expanding circle. The theme still changes — the overlay just crossfades
+   * in place instead of travelling, which is the whole of the effect for
+   * somebody who has asked for less movement.
+   */
+  .theme-wipe {
+    animation: theme-wipe-fade 160ms linear forwards !important;
+    transform: scale(var(--theme-wipe-scale)) !important;
+  }
+  @keyframes theme-wipe-fade {
+    from { opacity: 0.55; }
+    to { opacity: 0; }
   }
 
   /*

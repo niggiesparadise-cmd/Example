@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card, Chip } from "@heroui/react";
-import { ClipboardList, Pencil, Play, Plus, Swords, Trash2 } from "lucide-react";
+import { ClipboardList, FileUp, Pencil, Play, Plus, Swords, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { CourseDot } from "@/components/ui/course-dot";
 import { ErrorState, ListSkeleton, LoadingRegion, NoData } from "@/components/ui/data-states";
@@ -18,6 +18,7 @@ import {
   recordAttempt,
   type FullQuiz,
 } from "@/features/quizzes/api";
+import { ImportQuizDialog } from "@/features/quizzes/import-quiz";
 import { QuizFormDialog } from "@/features/quizzes/quiz-form";
 import { QuizPlayer, QuizResult, type QuizOutcome } from "@/features/quizzes/quiz-player";
 import { useMutation } from "@/features/shared/use-mutation";
@@ -48,6 +49,7 @@ export default function QuizzesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Quiz | undefined>(undefined);
   const [challenging, setChallenging] = useState<Quiz | undefined>(undefined);
+  const [isImportOpen, setIsImportOpen] = useState(false);
 
   const remove = useMutation(async (id: string) => deleteQuiz(id), {
     successMessage: "Quiz deleted.",
@@ -135,17 +137,23 @@ export default function QuizzesPage() {
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
       <PageHeader
         actions={
-          <Button
-            onPress={() => {
-              setEditing(undefined);
-              setIsFormOpen(true);
-            }}
-            size="sm"
-            variant="primary"
-          >
-            <Plus aria-hidden="true" className="size-4" strokeWidth={2.25} />
-            New quiz
-          </Button>
+          <>
+            <Button onPress={() => setIsImportOpen(true)} size="sm" variant="secondary">
+              <FileUp aria-hidden="true" className="size-4" strokeWidth={2} />
+              Import
+            </Button>
+            <Button
+              onPress={() => {
+                setEditing(undefined);
+                setIsFormOpen(true);
+              }}
+              size="sm"
+              variant="primary"
+            >
+              <Plus aria-hidden="true" className="size-4" strokeWidth={2.25} />
+              New quiz
+            </Button>
+          </>
         }
         description={
           quizzes.length === 0
@@ -282,6 +290,16 @@ export default function QuizzesPage() {
             if (!open) setChallenging(undefined);
           }}
           quiz={challenging}
+        />
+      ) : null}
+
+      {isImportOpen ? (
+        <ImportQuizDialog
+          courses={courses}
+          isOpen={isImportOpen}
+          onImported={refetch}
+          onOpenChange={setIsImportOpen}
+          topics={data?.topics ?? []}
         />
       ) : null}
 
