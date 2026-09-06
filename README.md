@@ -66,6 +66,9 @@ data.
 | Flashcards | Full CRUD, a 3D flip, four ratings, and a schedule the database owns — rating a card inserts a review and a trigger decides when it returns |
 | Quizzes | Multiple-choice and true/false, built inline; immediate feedback with the explanation, a score screen, retry, and a replay of only the questions you got wrong |
 | Challenges | Invite somebody by username to take one of your quizzes; both scores, a verdict, and every state change through a database function rather than a table write |
+| Sublectures | A third level under each topic, with a progress bar counted from them — add, rename, reorder, tick off, delete |
+| Notifications | Due tasks, approaching exams and waiting cards materialised on load; challenge invitations and results written by database triggers. Unread badge, mark read, dismiss, clear |
+| Imports | Flashcards from JSON, CSV or plain text; quizzes from HTML, PDF or text — parsed on the device, previewed and corrected before anything is written |
 | Schedule | Full CRUD on a navigable week view |
 | Study sessions | Start/stop timer whose state lives in the database, so it survives a restart |
 | Analytics | Total and weekly hours, hours by course, completion rate, streak, activity over time — computed from real sessions |
@@ -125,6 +128,31 @@ and open it (Android will ask you to allow installs from that source).
   the WebView boots. The splash background follows light/dark via `values-night`.
 - **Back button.** Handled in `MainActivity` so it walks back through the
   dashboard's history and exits only from the home screen.
+
+### Importing from a file
+
+Both importers read the file on the device. Nothing is uploaded, and nothing in
+an imported file is executed.
+
+- **Flashcards** — JSON (`front`/`back`, or `question`/`answer`), CSV with those
+  as headers, or plain text with one card per line separated by a tab, a
+  semicolon or `" - "`. Up to 2 MB and 1000 cards, written as batched inserts.
+- **Quizzes** — HTML, PDF, or plain text. HTML is parsed with `DOMParser`, which
+  builds a detached document: scripts in it never run, nothing is fetched, and
+  only `textContent` is read out, so an imported file cannot reach the app or
+  its Supabase session. Up to 10 MB and 300 questions.
+
+**What the PDF importer can and cannot do.** It reads the text layer, using
+pdf.js's own end-of-line markers to rebuild lines. It expects a question
+followed by lettered options (`A.`, `(b)`, `C)`) and optionally `Answer: B` and
+`Explanation: …`, on the same line or the next. A PDF with no text layer is a
+scan — the pages are images — and it says so rather than guessing; there is no
+OCR here. Anything it could not resolve is marked "needs review" and is
+editable before import, and only questions marked ready are written.
+
+pdf.js is imported on demand rather than bundled, so its 364 KB is never
+downloaded by a session that does not open the importer. Its worker is copied
+into `public/` by `scripts/copy-pdf-worker.mjs` on `postinstall`.
 
 ### Biometric app lock
 
@@ -233,8 +261,9 @@ order:
 | `0004_grants.sql` | Grants for `authenticated`; revokes everything from `anon` |
 | `0005_learning_features.sql` | Flashcards (with a scheduling trigger), quizzes, questions, options, attempts — plus their RLS and grants |
 | `0006_social_challenges.sql` | `profiles.username` and `profiles.avatar_path`, challenges, the security-definer functions, and the private `avatars` storage bucket with its policies |
+| `0007_sublectures_and_notifications.sql` | `sublectures` under topics, the `notifications` table with its dedupe index, and the two triggers that announce challenge invitations and results |
 
-`0005` and `0006` are additive: they create new objects and widen two read
+`0005`, `0006` and `0007` are additive: they create new objects and widen two read
 policies, and they change nothing that `0001`–`0004` established. Apply them in
 order after the first four.
 
