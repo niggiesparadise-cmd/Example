@@ -69,6 +69,50 @@ export async function createFlashcard(input: FlashcardInput): Promise<Flashcard>
   return unwrap(await getSupabase().from("flashcards").insert({ ...input, user_id }).select().single());
 }
 
+/**
+ * Writes an imported deck.
+ *
+ * One request per chunk rather than one per card: a 500-card import over a
+ * phone connection is 500 round trips otherwise, and a partial failure halfway
+ * through is far harder to explain than a chunk that either landed or did not.
+ * `onProgress` reports after each chunk so a long import can show a bar.
+ */
+export async function createFlashcards(
+  inputs: FlashcardInput[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<number> {
+  if (inputs.length === 0) return 0;
+
+  const user_id = await requireUserId();
+  const supabase = getSupabase();
+  // Large enough to be few requests, small enough to stay under any row limit
+  // and to make the progress bar move.
+  const CHUNK = 100;
+
+  let written = 0;
+  for (let start = 0; start < inputs.length; start += CHUNK) {
+    const chunk = inputs.slice(start, start + CHUNK).map((input) => ({ ...input, user_id }));
+    const { data, error } = await supabase.from("flashcards").insert(chunk).select("id");
+    if (error) throw new Error(`Import stopped after ${written} cards: ${error.message}`);
+    written += data?.length ?? 0;
+    onProgress?.(written, inputs.length);
+  }
+
+  return written;
+}
+
+/**
+ * The front text of every card already in the deck, lowercased.
+ *
+ * Used to spot a deck being imported twice. It is a heuristic, not a
+ * constraint — two cards may legitimately share a question — so the user is
+ * told and chooses, rather than having rows silently dropped.
+ */
+export async function existingFronts(): Promise<Set<string>> {
+  const rows = unwrap(await getSupabase().from("flashcards").select("front"));
+  return new Set(rows.map((row) => row.front.trim().toLowerCase()));
+}
+
 export async function updateFlashcard(id: string, input: Partial<FlashcardInput>): Promise<Flashcard> {
   return unwrap(await getSupabase().from("flashcards").update(input).eq("id", id).select().single());
 }

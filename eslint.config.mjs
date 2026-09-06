@@ -15,6 +15,9 @@ const eslintConfig = defineConfig([
     // The native project is generated, and `cap sync` copies the built web
     // bundle into it — linting minified output produces thousands of false hits.
     "android/**",
+    // pdf.js's worker is copied here from node_modules by a postinstall script.
+    // It is minified vendor code, not ours, and produces the same false hits.
+    "public/pdf.worker.min.mjs",
   ]),
 ]);
 

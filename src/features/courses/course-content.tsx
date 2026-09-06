@@ -1,16 +1,10 @@
 "use client";
 
-import {
-  Button,
-  Checkbox,
-  Disclosure,
-  Input,
-  Label,
-  TextField,
-} from "@heroui/react";
-import { Check, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Button, Checkbox, cn, Disclosure, Input, Label, TextField } from "@heroui/react";
+import { Check, ChevronRight, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { ErrorState, ListSkeleton } from "@/components/ui/data-states";
+import { TopicSublectures } from "./topic-sublectures";
 import { useMutation } from "@/features/shared/use-mutation";
 import { useQuery } from "@/features/shared/use-query";
 import type { Lecture, Topic } from "@/lib/supabase/database.types";
@@ -84,6 +78,8 @@ function TopicList({
   const [draft, setDraft] = useState("");
   const [editingId, setEditingId] = useState<string | undefined>(undefined);
   const [editingTitle, setEditingTitle] = useState("");
+  // Which topics have their sublectures showing. Collapsed by default.
+  const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
 
   // Topics move the progress bar, so the courses list has to be told as well.
   const refresh = async () => {
@@ -202,62 +198,94 @@ function TopicList({
                 </form>
               </li>
             ) : (
-              <li key={topic.id} className="flex items-center gap-2">
-                <Checkbox
-                  className="min-w-0 flex-1"
-                  // Only the row being written to is disabled — disabling the
-                  // whole list made every checkbox unresponsive during any tick.
-                  isDisabled={toggle.isPending}
-                  isSelected={topic.is_complete}
-                  onChange={(selected) =>
-                    void toggle.mutate(topic.id, selected)
-                  }
-                >
-                  <Checkbox.Content className="items-center gap-2.5">
-                    <Checkbox.Control>
-                      <Checkbox.Indicator />
-                    </Checkbox.Control>
-                    <Label
-                      className={
-                        topic.is_complete
-                          ? "text-sm text-muted line-through"
-                          : "text-sm"
-                      }
-                    >
-                      {topic.title}
-                    </Label>
-                  </Checkbox.Content>
-                </Checkbox>
-                <Button
-                  aria-label={`Rename ${topic.title}`}
-                  isIconOnly
-                  onPress={() => {
-                    setEditingId(topic.id);
-                    setEditingTitle(topic.title);
-                  }}
-                  size="sm"
-                  variant="ghost"
-                >
-                  <Pencil
-                    aria-hidden="true"
-                    className="size-3.5"
-                    strokeWidth={1.85}
-                  />
-                </Button>
-                <Button
-                  aria-label={`Remove ${topic.title}`}
-                  isDisabled={remove.isPending}
-                  isIconOnly
-                  onPress={() => void remove.mutate(topic.id)}
-                  size="sm"
-                  variant="ghost"
-                >
-                  <Trash2
-                    aria-hidden="true"
-                    className="size-3.5"
-                    strokeWidth={1.85}
-                  />
-                </Button>
+              <li key={topic.id}>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    aria-expanded={expanded.has(topic.id)}
+                    aria-label={`${expanded.has(topic.id) ? "Hide" : "Show"} sublectures for ${topic.title}`}
+                    isIconOnly
+                    onPress={() =>
+                      setExpanded((previous) => {
+                        const next = new Set(previous);
+                        if (next.has(topic.id)) next.delete(topic.id);
+                        else next.add(topic.id);
+                        return next;
+                      })
+                    }
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <ChevronRight
+                      aria-hidden="true"
+                      className={cn(
+                        "size-3.5 transition-transform duration-[var(--duration-glass)] ease-[var(--ease-glass)]",
+                        expanded.has(topic.id) && "rotate-90",
+                      )}
+                      strokeWidth={2.1}
+                    />
+                  </Button>
+                  <Checkbox
+                    className="min-w-0 flex-1"
+                    // Only the row being written to is disabled — disabling the
+                    // whole list made every checkbox unresponsive during any tick.
+                    isDisabled={toggle.isPending}
+                    isSelected={topic.is_complete}
+                    onChange={(selected) =>
+                      void toggle.mutate(topic.id, selected)
+                    }
+                  >
+                    <Checkbox.Content className="items-center gap-2.5">
+                      <Checkbox.Control>
+                        <Checkbox.Indicator />
+                      </Checkbox.Control>
+                      <Label
+                        className={
+                          topic.is_complete
+                            ? "text-sm text-muted line-through"
+                            : "text-sm"
+                        }
+                      >
+                        {topic.title}
+                      </Label>
+                    </Checkbox.Content>
+                  </Checkbox>
+                  <Button
+                    aria-label={`Rename ${topic.title}`}
+                    isIconOnly
+                    onPress={() => {
+                      setEditingId(topic.id);
+                      setEditingTitle(topic.title);
+                    }}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Pencil
+                      aria-hidden="true"
+                      className="size-3.5"
+                      strokeWidth={1.85}
+                    />
+                  </Button>
+                  <Button
+                    aria-label={`Remove ${topic.title}`}
+                    isDisabled={remove.isPending}
+                    isIconOnly
+                    onPress={() => void remove.mutate(topic.id)}
+                    size="sm"
+                    variant="ghost"
+                  >
+                    <Trash2
+                      aria-hidden="true"
+                      className="size-3.5"
+                      strokeWidth={1.85}
+                    />
+                  </Button>
+                </div>
+
+                {/* Loaded only once opened, so a course with many topics
+                    does not fetch every sublecture list up front. */}
+                {expanded.has(topic.id) ? (
+                  <TopicSublectures onChanged={onChanged} topicId={topic.id} />
+                ) : null}
               </li>
             ),
           )}
