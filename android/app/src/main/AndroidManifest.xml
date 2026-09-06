@@ -45,4 +45,18 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Lets the app tell "you're offline" apart from "the request failed". -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!--
+      Shows the system biometric prompt that guards the stored session.
+      USE_BIOMETRIC covers fingerprint and face on API 28+; the legacy
+      fingerprint permission is what androidx.biometric falls back to on API
+      24-27, which this app still supports (minSdk 24). Neither grants access to
+      biometric data — Android matches inside the TEE and returns only a verdict.
+    -->
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+
+    <!-- The lock is a usability guarantee, not a hardware requirement: the app
+         still installs on a device with no sensor and falls back to the PIN. -->
+    <uses-feature android:name="android.hardware.fingerprint" android:required="false" />
 </manifest>

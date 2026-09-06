@@ -1,5 +1,5 @@
 import type { Insert, Note, Update } from "@/lib/supabase/database.types";
-import { getSupabase, requireUserId, unwrap } from "../shared/api";
+import { deleteRow, getSupabase, requireUserId, unwrap } from "../shared/api";
 
 export type NoteInput = Insert<Note>;
 
@@ -43,6 +43,5 @@ export async function updateNote(id: string, input: Update<Note>): Promise<Note>
 }
 
 export async function deleteNote(id: string): Promise<void> {
-  const { error } = await getSupabase().from("notes").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("notes", id);
 }

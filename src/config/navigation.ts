@@ -2,10 +2,13 @@ import {
   BookOpen,
   CalendarDays,
   ChartNoAxesColumn,
+  ClipboardList,
   GraduationCap,
+  Layers,
   LayoutDashboard,
   ListChecks,
   NotebookPen,
+  Swords,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,7 +23,7 @@ export interface NavItem {
    * Key the live badge count is looked up under. The count itself comes from
    * the user's data at render time, not from this static config.
    */
-  badgeKey?: "tasks" | "exams";
+  badgeKey?: "tasks" | "exams" | "challenges";
   /** Whether the item appears in the mobile bottom bar. */
   primary?: boolean;
 }
@@ -62,6 +65,25 @@ export const navigation: NavItem[] = [
     icon: GraduationCap,
     badgeKey: "exams",
     primary: true,
+  },
+  {
+    href: "/flashcards",
+    label: "Flashcards",
+    description: "Recall practice",
+    icon: Layers,
+  },
+  {
+    href: "/quizzes",
+    label: "Quizzes",
+    description: "Test yourself",
+    icon: ClipboardList,
+  },
+  {
+    href: "/challenges",
+    label: "Challenges",
+    description: "Head to head",
+    icon: Swords,
+    badgeKey: "challenges",
   },
   {
     href: "/notes",

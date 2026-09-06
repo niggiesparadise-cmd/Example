@@ -1,5 +1,5 @@
 import type { Exam, Insert, Update } from "@/lib/supabase/database.types";
-import { getSupabase, requireUserId, unwrap } from "../shared/api";
+import { deleteRow, getSupabase, requireUserId, unwrap } from "../shared/api";
 
 export type ExamInput = Insert<Exam>;
 
@@ -19,6 +19,5 @@ export async function updateExam(id: string, input: Update<Exam>): Promise<Exam>
 }
 
 export async function deleteExam(id: string): Promise<void> {
-  const { error } = await getSupabase().from("exams").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("exams", id);
 }

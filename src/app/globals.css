@@ -12,8 +12,23 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display: var(--font-source-serif), ui-serif, Georgia, "Times New Roman", serif;
 
-  /* Height of the mobile bottom navigation, used to pad the page above it. */
+  /* Height of the floating mobile navigation, used to pad the page above it. */
   --spacing-bottom-nav: 4.5rem;
+  /* How far the floating bar sits off the bottom edge. */
+  --spacing-nav-inset: 0.75rem;
+
+  /* ---- Liquid Glass: corner radius -------------------------------------- */
+  --radius-glass-sm: 0.875rem;
+  --radius-glass: 1.25rem;
+  --radius-glass-lg: 1.75rem;
+  --radius-glass-pill: 999px;
+
+  /* ---- Liquid Glass: motion --------------------------------------------- */
+  /* One easing for everything that moves, so the product feels like one thing. */
+  --ease-glass: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-glass-fast: 140ms;
+  --duration-glass: 240ms;
+  --duration-glass-slow: 420ms;
 }
 
 /*
@@ -60,6 +75,49 @@
   --delta-bad: #e66767; /*  5.5:1 on the dark surface */
 }
 
+/*
+ * Liquid Glass.
+ *
+ * One set of tokens, two themes, and a handful of utilities built from them —
+ * so "glass" is a decision made once here rather than a Tailwind chain copied
+ * into thirty components.
+ *
+ * The restraint is deliberate. Glass is applied to things that float above the
+ * page (navigation, sheets, floating actions, a few controls) and never to the
+ * page itself: a translucent background behind body text costs contrast and
+ * costs paint time, and buys nothing. Surfaces stay opaque enough that
+ * foreground text keeps its contrast ratio against whatever scrolls under them.
+ */
+:root {
+  /* Tinted white, layered over whatever is behind it. */
+  --glass-bg: rgb(255 255 255 / 0.72);
+  --glass-bg-strong: rgb(255 255 255 / 0.86);
+  --glass-bg-subtle: rgb(255 255 255 / 0.55);
+  --glass-border: rgb(255 255 255 / 0.65);
+  --glass-border-outer: rgb(0 0 0 / 0.07);
+  /* The thin bright line along the top edge that reads as a lit surface. */
+  --glass-highlight: rgb(255 255 255 / 0.9);
+  --glass-shadow: 0 8px 28px -6px rgb(24 24 27 / 0.16), 0 2px 8px -2px rgb(24 24 27 / 0.08);
+  --glass-shadow-lg: 0 20px 48px -12px rgb(24 24 27 / 0.24), 0 4px 12px -4px rgb(24 24 27 / 0.1);
+  --glass-blur: 20px;
+  --glass-saturate: 175%;
+  /* What a surface falls back to where backdrop-filter is unavailable. */
+  --glass-fallback: rgb(252 252 251 / 0.97);
+}
+
+.dark,
+[data-theme="dark"] {
+  --glass-bg: rgb(38 38 42 / 0.72);
+  --glass-bg-strong: rgb(32 32 36 / 0.88);
+  --glass-bg-subtle: rgb(44 44 48 / 0.5);
+  --glass-border: rgb(255 255 255 / 0.1);
+  --glass-border-outer: rgb(0 0 0 / 0.4);
+  --glass-highlight: rgb(255 255 255 / 0.14);
+  --glass-shadow: 0 8px 28px -6px rgb(0 0 0 / 0.5), 0 2px 8px -2px rgb(0 0 0 / 0.35);
+  --glass-shadow-lg: 0 20px 48px -12px rgb(0 0 0 / 0.6), 0 4px 12px -4px rgb(0 0 0 / 0.4);
+  --glass-fallback: rgb(30 30 34 / 0.98);
+}
+
 @theme inline {
   --color-course-1: var(--course-1);
   --color-course-2: var(--course-2);
@@ -95,6 +153,184 @@
   }
 }
 
+@layer components {
+  /*
+   * The base surface. Everything glass is this plus a radius.
+   *
+   * `backdrop-filter` is applied only inside the @supports block, and the
+   * default background is the opaque fallback — so a browser without it (or a
+   * user who has asked for less transparency) gets a solid, legible card rather
+   * than an unreadable one.
+   */
+  .glass {
+    background-color: var(--glass-fallback);
+    border: 1px solid var(--glass-border-outer);
+    box-shadow: var(--glass-shadow);
+    border-radius: var(--radius-glass);
+  }
+
+  .glass-strong {
+    background-color: var(--glass-fallback);
+    border: 1px solid var(--glass-border-outer);
+    box-shadow: var(--glass-shadow-lg);
+    border-radius: var(--radius-glass-lg);
+  }
+
+  .glass-subtle {
+    background-color: var(--glass-fallback);
+    border: 1px solid var(--glass-border-outer);
+    border-radius: var(--radius-glass);
+  }
+
+  /*
+   * The lit top edge. A single inset hairline does more for the illusion of a
+   * physical pane than any amount of extra blur, and costs nothing to paint.
+   */
+  .glass-lit {
+    position: relative;
+  }
+  .glass-lit::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding-top: 1px;
+    background: linear-gradient(to bottom, var(--glass-highlight), transparent 42%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Interactive glass: presses in slightly, never moves its neighbours. */
+  .glass-interactive {
+    transition:
+      transform var(--duration-glass-fast) var(--ease-glass),
+      box-shadow var(--duration-glass) var(--ease-glass),
+      background-color var(--duration-glass) var(--ease-glass);
+  }
+  .glass-interactive:active {
+    transform: scale(0.97);
+  }
+
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass,
+    .glass-strong,
+    .glass-subtle {
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+      border-color: var(--glass-border);
+    }
+    .glass { background-color: var(--glass-bg); }
+    .glass-strong { background-color: var(--glass-bg-strong); }
+    .glass-subtle { background-color: var(--glass-bg-subtle); }
+  }
+
+  /*
+   * Some people find translucency itself uncomfortable, and some devices cannot
+   * afford it. Both get the opaque surface back.
+   */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass,
+    .glass-strong,
+    .glass-subtle {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      background-color: var(--glass-fallback);
+    }
+  }
+
+  /* The moving pill behind the active navigation item. */
+  .glass-indicator {
+    transition:
+      transform var(--duration-glass) var(--ease-glass),
+      width var(--duration-glass) var(--ease-glass),
+      opacity var(--duration-glass-fast) var(--ease-glass);
+  }
+}
+
+/*
+ * Page transitions.
+ *
+ * Transform and opacity only: both are composited, so a section change never
+ * triggers layout. The distance is small on purpose — a section swap should
+ * read as a shift of attention, not as a slide show.
+ */
+@layer utilities {
+  @keyframes glass-page-in {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 10px, 0) scale(0.995);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .page-enter {
+    animation: glass-page-in var(--duration-glass) var(--ease-glass) both;
+  }
+
+  /*
+   * The flashcard flip.
+   *
+   * A real 3D rotation rather than a crossfade: the two faces are stacked in a
+   * `preserve-3d` scene, the back is pre-rotated, and flipping turns the scene.
+   * `backface-visibility` is what stops both faces showing at once mid-turn.
+   */
+  .flip-scene {
+    perspective: 1600px;
+  }
+
+  .flip-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform var(--duration-glass-slow) var(--ease-glass);
+  }
+
+  .flip-card[data-flipped="true"] {
+    transform: rotateY(180deg);
+  }
+
+  .flip-face {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .flip-face-back {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(180deg);
+  }
+
+  /*
+   * Answer feedback.
+   *
+   * Two short, single-shot movements — a settle for right, a small shake for
+   * wrong. Nothing flashes, nothing repeats, and neither moves a neighbour:
+   * both animate `transform` on the answer that was tapped.
+   */
+  @keyframes answer-correct {
+    0% { transform: scale(1); }
+    45% { transform: scale(1.025); }
+    100% { transform: scale(1); }
+  }
+  @keyframes answer-wrong {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    25% { transform: translate3d(-4px, 0, 0); }
+    75% { transform: translate3d(4px, 0, 0); }
+  }
+
+  .answer-correct {
+    animation: answer-correct var(--duration-glass) var(--ease-glass) 1;
+  }
+  .answer-wrong {
+    animation: answer-wrong 200ms var(--ease-glass) 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -102,5 +338,32 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  /* No entrance movement, and no press-scale — the state change still lands,
+     it simply arrives without travelling. */
+  .page-enter {
+    animation: none !important;
+  }
+  .glass-interactive:active {
+    transform: none !important;
+  }
+
+  /*
+   * The flip still has to swap the faces — the answer must appear — so the
+   * rotation is removed rather than the state change. The back face is brought
+   * flat and the front is hidden outright.
+   */
+  .flip-card,
+  .flip-card[data-flipped="true"] {
+    transform: none !important;
+    transition: none !important;
+  }
+  .flip-face-back {
+    transform: none !important;
+  }
+  .flip-card[data-flipped="false"] .flip-face-back,
+  .flip-card[data-flipped="true"] .flip-face-front {
+    visibility: hidden;
   }
 }

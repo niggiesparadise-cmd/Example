@@ -1,5 +1,5 @@
 import type { StudySession } from "@/lib/supabase/database.types";
-import { getSupabase, requireUserId, unwrap, unwrapMaybe } from "../shared/api";
+import { deleteRow, getSupabase, requireUserId, unwrap, unwrapMaybe } from "../shared/api";
 
 /**
  * Study sessions.
@@ -56,6 +56,20 @@ export async function stopSession(id: string, focus?: number): Promise<StudySess
   );
 }
 
+/**
+ * Records how focused a finished session felt.
+ *
+ * Kept separate from `stopSession` on purpose: stopping must land the moment
+ * the user asks for it, so `ended_at` is written first and the rating is an
+ * optional follow-up. Closing the app before rating loses the score, never the
+ * session.
+ */
+export async function setSessionFocus(id: string, focus: number): Promise<StudySession> {
+  return unwrap(
+    await getSupabase().from("study_sessions").update({ focus }).eq("id", id).select().single(),
+  );
+}
+
 /** Completed sessions from `since` (ISO date) onwards, newest first. */
 export async function listSessions(since: string): Promise<StudySession[]> {
   return unwrap(
@@ -69,6 +83,5 @@ export async function listSessions(since: string): Promise<StudySession[]> {
 }
 
 export async function deleteSession(id: string): Promise<void> {
-  const { error } = await getSupabase().from("study_sessions").delete().eq("id", id);
-  if (error) throw new Error(error.message);
+  await deleteRow("study_sessions", id);
 }

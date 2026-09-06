@@ -11,6 +11,9 @@ export type TaskPriority = "low" | "medium" | "high";
 export type TaskKind = "assignment" | "reading" | "problem-set" | "project" | "lab-report" | "revision";
 export type ExamKind = "midterm" | "final" | "quiz" | "practical" | "oral";
 export type SessionKind = "lecture" | "lab" | "seminar" | "tutorial" | "study" | "exam";
+export type FlashcardRating = "again" | "hard" | "good" | "easy";
+export type QuizQuestionKind = "multiple-choice" | "true-false";
+export type ChallengeStatus = "pending" | "accepted" | "declined" | "active" | "completed" | "expired";
 
 /** Palette slot 1–5; see `src/lib/chart-palette.ts`. */
 export type ColorSlot = 1 | 2 | 3 | 4 | 5;
@@ -23,6 +26,10 @@ type Timestamps = {
 export type Profile = Timestamps & {
   id: string;
   full_name: string | null;
+  /** The only handle another user can find you by. Lowercase, 3–24 chars. */
+  username: string | null;
+  /** Path inside the private `avatars` bucket — never the image itself. */
+  avatar_path: string | null;
   program: string | null;
   academic_year: string | null;
   term: string | null;
@@ -131,6 +138,99 @@ export type StudySession = {
   created_at: string;
 };
 
+export type Flashcard = Timestamps & {
+  id: string;
+  user_id: string;
+  course_id: string | null;
+  topic_id: string | null;
+  front: string;
+  back: string;
+  /** All five maintained by the `apply_flashcard_review` trigger. */
+  due_at: string;
+  interval_days: number;
+  ease: number;
+  review_count: number;
+  last_rating: FlashcardRating | null;
+};
+
+export type FlashcardReview = {
+  id: string;
+  user_id: string;
+  flashcard_id: string;
+  rating: FlashcardRating;
+  duration_ms: number | null;
+  reviewed_at: string;
+};
+
+export type Quiz = Timestamps & {
+  id: string;
+  user_id: string;
+  course_id: string | null;
+  topic_id: string | null;
+  title: string;
+  description: string | null;
+};
+
+export type QuizQuestion = Timestamps & {
+  id: string;
+  /** Questions are owned through their quiz, so they carry no `user_id`. */
+  quiz_id: string;
+  question: string;
+  kind: QuizQuestionKind;
+  explanation: string | null;
+  position: number;
+};
+
+export type QuizOption = {
+  id: string;
+  question_id: string;
+  option_text: string;
+  is_correct: boolean;
+  position: number;
+  created_at: string;
+};
+
+export type QuizAttempt = {
+  id: string;
+  user_id: string;
+  quiz_id: string;
+  score: number;
+  total_questions: number;
+  duration_seconds: number;
+  incorrect_question_ids: string[];
+  completed_at: string;
+};
+
+export type Challenge = Timestamps & {
+  id: string;
+  creator_id: string;
+  opponent_id: string;
+  quiz_id: string;
+  title: string;
+  status: ChallengeStatus;
+  expires_at: string;
+  completed_at: string | null;
+};
+
+export type ChallengeParticipant = {
+  id: string;
+  challenge_id: string;
+  user_id: string;
+  score: number | null;
+  total_questions: number | null;
+  duration_seconds: number | null;
+  completed_at: string | null;
+  created_at: string;
+};
+
+/** What the `search_profiles` / `challenge_profiles` functions return — and all they return. */
+export type PublicProfile = {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_path: string | null;
+};
+
 /** Columns the database fills in itself and clients must never send. */
 type Managed = "id" | "user_id" | "created_at" | "updated_at";
 
@@ -147,6 +247,15 @@ type TableShape<Row, I, U> = {
   Relationships: [];
 };
 
+/** A task insert, minus the column the completion trigger maintains. */
+type TaskInsert = Omit<Insert<Task>, "completed_at">;
+
+/** A flashcard insert, minus the scheduling the review trigger maintains. */
+type FlashcardInsert = Omit<
+  Insert<Flashcard>,
+  "due_at" | "interval_days" | "ease" | "review_count" | "last_rating"
+>;
+
 export type Database = {
   public: {
     Tables: {
@@ -154,7 +263,15 @@ export type Database = {
       courses: TableShape<Course, Insert<Course> & { user_id: string }, Update<Course>>;
       topics: TableShape<Topic, Insert<Topic> & { user_id: string }, Update<Topic>>;
       lectures: TableShape<Lecture, Insert<Lecture> & { user_id: string }, Update<Lecture>>;
-      tasks: TableShape<Task, Insert<Task> & { user_id: string }, Update<Task>>;
+      /**
+       * `completed_at` is omitted from both payloads: the `tasks_sync_completion`
+       * trigger derives it from `status` and owns it outright, the same way
+       * Postgres owns `study_sessions.duration_minutes` below. Letting a client
+       * send it meant an edit to an already-finished task shipped
+       * `completed_at: null`, and the trigger re-stamped `now()` over the real
+       * completion time.
+       */
+      tasks: TableShape<Task, TaskInsert & { user_id: string }, Partial<TaskInsert>>;
       exams: TableShape<Exam, Insert<Exam> & { user_id: string }, Update<Exam>>;
       notes: TableShape<Note, Insert<Note> & { user_id: string }, Update<Note>>;
       schedule_events: TableShape<ScheduleEvent, Insert<ScheduleEvent> & { user_id: string }, Update<ScheduleEvent>>;
@@ -163,9 +280,69 @@ export type Database = {
         Omit<StudySession, "id" | "user_id" | "created_at" | "duration_minutes"> & { user_id: string },
         Partial<Omit<StudySession, "id" | "user_id" | "created_at" | "duration_minutes">>
       >;
+      /**
+       * The five scheduling columns are omitted from both payloads: the
+       * `apply_flashcard_review` trigger owns the schedule, so a client that
+       * sent them could only ever disagree with the reviews behind them.
+       */
+      flashcards: TableShape<Flashcard, FlashcardInsert & { user_id: string }, Partial<FlashcardInsert>>;
+      flashcard_reviews: TableShape<
+        FlashcardReview,
+        Omit<FlashcardReview, "id" | "user_id" | "reviewed_at"> & { user_id: string },
+        never
+      >;
+      quizzes: TableShape<Quiz, Insert<Quiz> & { user_id: string }, Update<Quiz>>;
+      quiz_questions: TableShape<QuizQuestion, Omit<QuizQuestion, Managed>, Partial<Omit<QuizQuestion, Managed>>>;
+      quiz_options: TableShape<
+        QuizOption,
+        Omit<QuizOption, "id" | "created_at">,
+        Partial<Omit<QuizOption, "id" | "created_at">>
+      >;
+      quiz_attempts: TableShape<
+        QuizAttempt,
+        Omit<QuizAttempt, "id" | "completed_at"> & { user_id: string },
+        never
+      >;
+      challenges: TableShape<Challenge, Insert<Challenge> & { creator_id: string }, Update<Challenge>>;
+      challenge_participants: TableShape<
+        ChallengeParticipant,
+        Omit<ChallengeParticipant, "id" | "created_at">,
+        Partial<Omit<ChallengeParticipant, "id" | "created_at" | "challenge_id" | "user_id">>
+      >;
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    /**
+     * The RPCs. These are the operations that cannot be expressed as a policy on
+     * a single table — creating a two-sided challenge, answering an invitation,
+     * recording a result — so they live in the database with their own checks.
+     */
+    Functions: {
+      search_profiles: {
+        Args: { query: string };
+        Returns: PublicProfile[];
+      };
+      challenge_profiles: {
+        Args: Record<string, never>;
+        Returns: PublicProfile[];
+      };
+      create_challenge: {
+        Args: { quiz: string; opponent_username: string; challenge_title: string };
+        Returns: string;
+      };
+      respond_to_challenge: {
+        Args: { challenge: string; accept: boolean };
+        Returns: ChallengeStatus;
+      };
+      submit_challenge_result: {
+        Args: {
+          challenge: string;
+          final_score: number;
+          question_count: number;
+          seconds_taken: number;
+        };
+        Returns: ChallengeStatus;
+      };
+    };
     CompositeTypes: { [_ in never]: never };
     Enums: {
       task_status: TaskStatus;
@@ -173,6 +350,9 @@ export type Database = {
       task_kind: TaskKind;
       exam_kind: ExamKind;
       session_kind: SessionKind;
+      flashcard_rating: FlashcardRating;
+      quiz_question_kind: QuizQuestionKind;
+      challenge_status: ChallengeStatus;
     };
   };
 }

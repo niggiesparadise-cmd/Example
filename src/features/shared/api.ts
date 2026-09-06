@@ -31,6 +31,37 @@ export function unwrap<T>(result: { data: T | null; error: PostgrestError | null
   return result.data;
 }
 
+/**
+ * Runs a delete and insists it actually removed something.
+ *
+ * `.delete()` reports no error when RLS filters the row out — PostgREST simply
+ * deletes nothing and returns success — so a client that checks only `error`
+ * tells the user "Deleted." after deleting nothing at all. Asking for the rows
+ * back turns that silent no-op into a real failure.
+ */
+type DeletableTable =
+  | "courses"
+  | "topics"
+  | "lectures"
+  | "tasks"
+  | "exams"
+  | "notes"
+  | "schedule_events"
+  | "study_sessions"
+  | "flashcards"
+  | "quizzes"
+  | "quiz_questions"
+  | "quiz_options"
+  | "challenges";
+
+export async function deleteRow(table: DeletableTable, id: string): Promise<void> {
+  const { data, error } = await getSupabase().from(table).delete().eq("id", id).select("id");
+  if (error) throw describeError(error);
+  if (!data || data.length === 0) {
+    throw new Error("That item no longer exists, or it isn't yours to delete.");
+  }
+}
+
 /** Unwraps a result whose data may legitimately be absent. */
 export function unwrapMaybe<T>(result: { data: T | null; error: PostgrestError | null }): T | null {
   if (result.error) throw describeError(result.error);

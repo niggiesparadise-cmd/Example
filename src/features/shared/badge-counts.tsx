@@ -1,17 +1,21 @@
 "use client";
 
 import { createContext, use, useMemo, type ReactNode } from "react";
+import { countPendingInvitations } from "@/features/challenges/api";
 import { listExams } from "@/features/exams/api";
 import { listTasks } from "@/features/tasks/api";
+import { useDataVersion } from "@/features/shared/data-version";
 import { useQuery } from "@/features/shared/use-query";
 import { addDays, todayIso } from "@/lib/date";
 
 export interface BadgeCounts {
   tasks: number;
   exams: number;
+  /** Invitations addressed to you and not yet answered. */
+  challenges: number;
 }
 
-const BadgeCountsContext = createContext<BadgeCounts>({ tasks: 0, exams: 0 });
+const BadgeCountsContext = createContext<BadgeCounts>({ tasks: 0, exams: 0, challenges: 0 });
 
 /**
  * Live counts for the navigation badges.
@@ -21,8 +25,12 @@ const BadgeCountsContext = createContext<BadgeCounts>({ tasks: 0, exams: 0 });
  * next fortnight.
  */
 export function BadgeCountsProvider({ children }: { children: ReactNode }) {
-  const tasks = useQuery(listTasks, []);
-  const exams = useQuery(listExams, []);
+  // This provider lives in the app frame, which navigation never remounts, so
+  // without the version dependency the badges froze at their first-load values.
+  const dataVersion = useDataVersion();
+  const tasks = useQuery(listTasks, [dataVersion]);
+  const exams = useQuery(listExams, [dataVersion]);
+  const invitations = useQuery(countPendingInvitations, [dataVersion]);
 
   const value = useMemo<BadgeCounts>(() => {
     const today = todayIso();
@@ -35,8 +43,9 @@ export function BadgeCountsProvider({ children }: { children: ReactNode }) {
       ).length,
       exams: (exams.data ?? []).filter((exam) => exam.exam_date >= today && exam.exam_date <= fortnightOut)
         .length,
+      challenges: invitations.data ?? 0,
     };
-  }, [tasks.data, exams.data]);
+  }, [tasks.data, exams.data, invitations.data]);
 
   return <BadgeCountsContext value={value}>{children}</BadgeCountsContext>;
 }

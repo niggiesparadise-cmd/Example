@@ -106,7 +106,10 @@ export function NoteFormDialog({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Select onSelectionChange={(key) => set("course_id", String(key))} selectedKey={form.course_id}>
           <Label>Course</Label>
-          <Select.Trigger />
+          <Select.Trigger>
+            <Select.Value />
+            <Select.Indicator />
+          </Select.Trigger>
           <Select.Popover>
             <ListBox>
               <ListBox.Item id="none" textValue="No course">No course</ListBox.Item>

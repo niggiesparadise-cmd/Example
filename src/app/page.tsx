@@ -4,6 +4,7 @@ import { Button, Chip } from "@heroui/react";
 import { Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { CourseProgress } from "@/components/overview/course-progress";
+import { LearningSummary } from "@/components/overview/learning-summary";
 import { NextExam } from "@/components/overview/next-exam";
 import { OverviewStats } from "@/components/overview/overview-stats";
 import { RecentNotes } from "@/components/overview/recent-notes";
@@ -14,6 +15,7 @@ import { UpcomingTasks } from "@/components/overview/upcoming-tasks";
 import { ErrorState, ListSkeleton, LoadingRegion } from "@/components/ui/data-states";
 import { PageHeader } from "@/components/ui/page-header";
 import { useAuth } from "@/features/auth/auth-provider";
+import { useLearningSnapshot } from "@/features/overview/use-learning-snapshot";
 import { isEmptyAccount, useOverview } from "@/features/overview/use-overview";
 import { useProfile } from "@/features/profile/use-profile";
 import { StudyTimer } from "@/features/study-sessions/study-timer";
@@ -21,6 +23,7 @@ import { formatLongDate, todayIso } from "@/lib/date";
 
 export default function OverviewPage() {
   const { data, error, isLoading, refetch } = useOverview();
+  const learning = useLearningSnapshot();
   const { data: profile } = useProfile();
   const { user } = useAuth();
 
@@ -84,6 +87,8 @@ export default function OverviewPage() {
             summary={data.analytics.summary}
             tasks={data.tasks}
           />
+
+          {learning.data ? <LearningSummary snapshot={learning.data} /> : null}
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <StudyActivity className="lg:col-span-2" points={data.analytics.daily.slice(-14)} />

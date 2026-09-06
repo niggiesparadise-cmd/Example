@@ -25,7 +25,9 @@ export function NativeShell() {
     // Two frames: the first commits this render, the second paints it.
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        if (!cancelled) void SplashScreen.hide();
+        // A rejection here would surface as an unhandled promise rejection; a
+        // splash that outstays its welcome is not worth taking the app down for.
+        if (!cancelled) void SplashScreen.hide().catch(() => {});
       });
     });
 

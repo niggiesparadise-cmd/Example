@@ -9,7 +9,7 @@ import { ConfirmDeleteDialog } from "@/components/ui/form-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { deleteCourse, listCourses, type CourseWithProgress } from "@/features/courses/api";
 import { CourseFormDialog } from "@/features/courses/course-form";
-import { CourseTopics } from "@/features/courses/course-topics";
+import { CourseContent } from "@/features/courses/course-content";
 import { useMutation } from "@/features/shared/use-mutation";
 import { useQuery } from "@/features/shared/use-query";
 import { toLetterGrade } from "@/lib/format";
@@ -158,7 +158,7 @@ export default function CoursesPage() {
                   </ProgressBar.Track>
                 </ProgressBar>
 
-                <CourseTopics courseId={course.id} onChanged={refetch} />
+                <CourseContent courseId={course.id} onChanged={refetch} />
               </Card.Content>
             </Card>
           ))}

@@ -1,7 +1,15 @@
 "use client";
 
-import { Alert, Button, Card, Spinner } from "@heroui/react";
-import { Database, LogOut, Trash2, User } from "lucide-react";
+import {
+  Alert,
+  Button,
+  Card,
+  Label,
+  ListBox,
+  Select,
+  Spinner,
+} from "@heroui/react";
+import { Database, Fingerprint, LogOut, Trash2, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { TextInputField } from "@/components/form/text-field";
@@ -9,18 +17,30 @@ import { ErrorState, ListSkeleton } from "@/components/ui/data-states";
 import { ConfirmDeleteDialog } from "@/components/ui/form-dialog";
 import { PageHeader } from "@/components/ui/page-header";
 import { SectionCard } from "@/components/ui/section-card";
+import { useAppLock } from "@/features/auth/app-lock-provider";
 import { useAuth } from "@/features/auth/auth-provider";
+import {
+  LOCK_INTERVALS,
+  type LockIntervalId,
+} from "@/features/auth/lock-settings";
+import { AvatarPicker } from "@/features/profile/avatar-picker";
 import { updateProfile } from "@/features/profile/api";
 import { useProfile } from "@/features/profile/use-profile";
-import { clearMyData, seedDemoData, type SeedProgress } from "@/features/seed/seed";
+import {
+  clearMyData,
+  seedDemoData,
+  type SeedProgress,
+} from "@/features/seed/seed";
 import { useMutation } from "@/features/shared/use-mutation";
 
 export default function SettingsPage() {
   const { data: profile, error, isLoading, refetch } = useProfile();
   const { signOut, user } = useAuth();
+  const lock = useAppLock();
   const router = useRouter();
 
   const [fullName, setFullName] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
   const [program, setProgram] = useState<string | null>(null);
   const [term, setTerm] = useState<string | null>(null);
   const [progress, setProgress] = useState<SeedProgress | undefined>(undefined);
@@ -30,6 +50,16 @@ export default function SettingsPage() {
   const nameValue = fullName ?? profile?.full_name ?? "";
   const programValue = program ?? profile?.program ?? "";
   const termValue = term ?? profile?.term ?? "";
+  const usernameValue = username ?? profile?.username ?? "";
+
+  /*
+   * The same rule the column's CHECK constraint enforces. A username is how
+   * other people find you, so it is lowercase and unambiguous by design.
+   */
+  const usernameError =
+    usernameValue === "" || /^[a-z0-9_]{3,24}$/.test(usernameValue)
+      ? undefined
+      : "3–24 characters: lowercase letters, numbers and underscores.";
 
   const save = useMutation(
     async () =>
@@ -37,6 +67,7 @@ export default function SettingsPage() {
         full_name: nameValue.trim() || null,
         program: programValue.trim() || null,
         term: termValue.trim() || null,
+        username: usernameValue.trim() || null,
       }),
     {
       successMessage: "Profile saved.",
@@ -54,6 +85,17 @@ export default function SettingsPage() {
     },
   });
 
+  /**
+   * Sign-out gets the same treatment as every other write: pending state, a
+   * visible error, and no duplicate submissions. It used to be a bare
+   * `void signOut().then(...)`, so a failure produced no message and no
+   * navigation — the button simply did nothing.
+   */
+  const leave = useMutation(async () => signOut(), {
+    errorMessage: "Couldn't sign out",
+    onSuccess: () => router.replace("/sign-in/"),
+  });
+
   const clear = useMutation(async () => clearMyData(), {
     successMessage: "All your data was deleted.",
     errorMessage: "Couldn't clear your data",
@@ -65,17 +107,30 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <PageHeader description="Your profile, and tools for testing with data." title="Settings" />
+      <PageHeader
+        description="Your profile, and tools for testing with data."
+        title="Settings"
+      />
 
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : error ? (
-        <ErrorState error={error} onRetry={() => void refetch()} title="Couldn't load your profile" />
+        <ErrorState
+          error={error}
+          onRetry={() => void refetch()}
+          title="Couldn't load your profile"
+        />
       ) : (
         <>
           <SectionCard
             description={user?.email ?? ""}
-            icon={<User aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
+            icon={
+              <User
+                aria-hidden="true"
+                className="size-[18px]"
+                strokeWidth={1.85}
+              />
+            }
             title="Profile"
           >
             <form
@@ -86,13 +141,43 @@ export default function SettingsPage() {
                 void save.mutate();
               }}
             >
-              <TextInputField label="Full name" onChange={setFullName} placeholder="Mara Ellison" value={nameValue} />
+              <AvatarPicker />
+
+              <TextInputField
+                label="Full name"
+                onChange={setFullName}
+                placeholder="Mara Ellison"
+                value={nameValue}
+              />
+
+              <TextInputField
+                errorMessage={usernameError}
+                hint="How classmates find you to send a challenge. Leave it blank to stay unlisted."
+                label="Username"
+                onChange={(value) => setUsername(value.toLowerCase())}
+                placeholder="mara_e"
+                value={usernameValue}
+              />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <TextInputField label="Programme" onChange={setProgram} placeholder="BSc Computer Science" value={programValue} />
-                <TextInputField label="Term" onChange={setTerm} placeholder="Autumn 2026" value={termValue} />
+                <TextInputField
+                  label="Programme"
+                  onChange={setProgram}
+                  placeholder="BSc Computer Science"
+                  value={programValue}
+                />
+                <TextInputField
+                  label="Term"
+                  onChange={setTerm}
+                  placeholder="Autumn 2026"
+                  value={termValue}
+                />
               </div>
               <div>
-                <Button isDisabled={save.isPending} type="submit" variant="primary">
+                <Button
+                  isDisabled={save.isPending}
+                  type="submit"
+                  variant="primary"
+                >
                   {save.isPending ? "Saving…" : "Save profile"}
                 </Button>
               </div>
@@ -100,15 +185,78 @@ export default function SettingsPage() {
           </SectionCard>
 
           <SectionCard
+            description="How the Android app protects your session on this device."
+            icon={
+              <Fingerprint
+                aria-hidden="true"
+                className="size-[18px]"
+                strokeWidth={1.85}
+              />
+            }
+            title="App lock"
+          >
+            {lock.availability?.available ? (
+              <>
+                <p className="text-sm text-muted">
+                  {lock.availability.usesDeviceCredentialFallback
+                    ? "Your device PIN, pattern or password unlocks the app — no fingerprint or face is enrolled."
+                    : "Your fingerprint or face unlocks the app. Android checks it; the app never sees or stores it."}
+                </p>
+                <Select
+                  onSelectionChange={(key) =>
+                    lock.setIntervalId(String(key) as LockIntervalId)
+                  }
+                  selectedKey={lock.intervalId}
+                >
+                  <Label>Lock again after leaving the app</Label>
+                  <Select.Trigger>
+                    <Select.Value />
+                    <Select.Indicator />
+                  </Select.Trigger>
+                  <Select.Popover>
+                    <ListBox>
+                      {LOCK_INTERVALS.map((option) => (
+                        <ListBox.Item
+                          key={option.id}
+                          id={option.id}
+                          textValue={option.label}
+                        >
+                          {option.label}
+                        </ListBox.Item>
+                      ))}
+                    </ListBox>
+                  </Select.Popover>
+                </Select>
+                <p className="text-xs text-muted">
+                  Opening the app always asks, whatever this is set to.
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-muted">
+                {lock.availability
+                  ? lock.availability.reason
+                  : "The app lock runs in the Android app. In a browser there is no device keystore to protect the session with, so it does not apply here."}
+              </p>
+            )}
+          </SectionCard>
+
+          <SectionCard
             description="Populate your account with a sample term, or start over."
-            icon={<Database aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />}
+            icon={
+              <Database
+                aria-hidden="true"
+                className="size-[18px]"
+                strokeWidth={1.85}
+              />
+            }
             title="Demo data"
           >
             <Alert status="warning">
               <Alert.Content>
                 <Alert.Description>
-                  These write to your real account through the normal API. Use them for trying the app out,
-                  not alongside data you care about.
+                  These write to your real account through the normal API. Use
+                  them for trying the app out, not alongside data you care
+                  about.
                 </Alert.Description>
               </Alert.Content>
             </Alert>
@@ -121,11 +269,23 @@ export default function SettingsPage() {
             ) : null}
 
             <div className="flex flex-wrap gap-2">
-              <Button isDisabled={seed.isPending || clear.isPending} onPress={() => void seed.mutate()} variant="secondary">
+              <Button
+                isDisabled={seed.isPending || clear.isPending}
+                onPress={() => void seed.mutate()}
+                variant="secondary"
+              >
                 {seed.isPending ? "Loading…" : "Load demo data"}
               </Button>
-              <Button isDisabled={seed.isPending || clear.isPending} onPress={() => setIsClearOpen(true)} variant="danger-soft">
-                <Trash2 aria-hidden="true" className="size-4" strokeWidth={1.85} />
+              <Button
+                isDisabled={seed.isPending || clear.isPending}
+                onPress={() => setIsClearOpen(true)}
+                variant="danger-soft"
+              >
+                <Trash2
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={1.85}
+                />
                 Clear my data
               </Button>
             </div>
@@ -134,11 +294,16 @@ export default function SettingsPage() {
           <Card className="border border-border p-5">
             <Card.Content>
               <Button
-                onPress={() => void signOut().then(() => router.replace("/sign-in/"))}
+                isDisabled={leave.isPending}
+                onPress={() => void leave.mutate()}
                 variant="tertiary"
               >
-                <LogOut aria-hidden="true" className="size-4" strokeWidth={1.85} />
-                Sign out
+                <LogOut
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={1.85}
+                />
+                {leave.isPending ? "Signing out…" : "Sign out"}
               </Button>
             </Card.Content>
           </Card>

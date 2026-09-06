@@ -89,8 +89,7 @@ export async function seedDemoData(onProgress?: (progress: SeedProgress) => void
       estimate_minutes: demo.estimate_minutes,
       checklist_done: demo.checklist_done,
       checklist_total: demo.checklist_total,
-      // A trigger fills this in from `status`; sending it would risk disagreeing.
-      completed_at: null,
+      // `completed_at` is not sent at all — the trigger derives it from `status`.
     });
   }
 

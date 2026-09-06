@@ -26,8 +26,18 @@ export function Providers({ children }: { children: ReactNode }) {
         enableSystem
       >
         {children}
-        {/* Success and error feedback for every database write. */}
-        <Toast.Provider placement="bottom end" />
+        {/*
+          Success and error feedback for every database write.
+
+          The bottom offset clears the mobile navigation bar and the gesture
+          inset: at the default placement the toast sat directly on top of the
+          bottom bar and intercepted taps meant for it, so a toast could leave
+          the navigation unusable for as long as it was on screen.
+        */}
+        <Toast.Provider
+          className="bottom-[calc(var(--spacing-bottom-nav)+env(safe-area-inset-bottom)+0.75rem)] md:bottom-4"
+          placement="bottom end"
+        />
       </ThemeProvider>
     </RouterProvider>
   );

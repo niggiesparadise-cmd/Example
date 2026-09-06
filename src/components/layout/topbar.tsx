@@ -1,12 +1,13 @@
 "use client";
 
-import { Avatar, Badge, Button, Dropdown, Header, SearchField, Separator } from "@heroui/react";
+import { Badge, Button, Dropdown, Header, SearchField, Separator } from "@heroui/react";
 import { Bell, GraduationCap, LogOut, Plus, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { site } from "@/config/site";
 import { useAuth } from "@/features/auth/auth-provider";
-import { initialsOf, useProfile } from "@/features/profile/use-profile";
+import { useProfile } from "@/features/profile/use-profile";
+import { UserAvatar } from "@/features/profile/user-avatar";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -19,10 +20,15 @@ export function Topbar() {
   const { signOut, user } = useAuth();
   const { data: profile } = useProfile();
   const router = useRouter();
-  const initials = initialsOf(profile?.full_name, user?.email);
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-background/85 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+    /*
+     * The top bar uses the same translucency as the floating navigation, so
+     * content scrolling under either behaves the same way. Its background is
+     * the glass fallback where `backdrop-filter` is unavailable, which keeps
+     * the title and controls legible rather than letting the page show through.
+     */
+    <header className="glass-lit sticky top-0 z-20 border-b border-[var(--glass-border-outer)] bg-[var(--glass-fallback)] pt-[env(safe-area-inset-top)] supports-[backdrop-filter]:bg-[var(--glass-bg-strong)] supports-[backdrop-filter]:backdrop-blur-[var(--glass-blur)] supports-[backdrop-filter]:backdrop-saturate-[var(--glass-saturate)]">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6 lg:px-8">
         <Link
           aria-label={`${site.name} — ${site.tagline}`}
@@ -64,9 +70,8 @@ export function Topbar() {
 
           <Dropdown>
             <Button aria-label="Account menu" className="rounded-full p-0.5" isIconOnly size="sm" variant="ghost">
-              <Avatar size="sm">
-                <Avatar.Fallback>{initials}</Avatar.Fallback>
-              </Avatar>
+              {/* The uploaded picture where there is one, initials otherwise. */}
+              <UserAvatar size="sm" />
             </Button>
             <Dropdown.Popover placement="bottom end">
               <Dropdown.Menu>

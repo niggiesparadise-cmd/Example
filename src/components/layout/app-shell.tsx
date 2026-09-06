@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { MobileNav } from "./mobile-nav";
+import { PageTransition } from "./page-transition";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 
@@ -24,10 +25,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-h-dvh flex-col md:pl-[88px] lg:pl-[264px]">
         <Topbar />
         <main
-          className="flex-1 px-[max(1rem,env(safe-area-inset-left))] pt-6 pb-[calc(var(--spacing-bottom-nav)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 md:pb-10 lg:px-8"
+          /*
+           * Bottom padding clears the floating bar: its height, the gap it
+           * floats in, the gesture inset, and a little breathing room — so the
+           * last card in a list is never tucked under the glass.
+           */
+          className="flex-1 px-[max(1rem,env(safe-area-inset-left))] pt-6 pb-[calc(var(--spacing-bottom-nav)+var(--spacing-nav-inset)+env(safe-area-inset-bottom)+1.5rem)] sm:px-6 md:pb-10 lg:px-8"
           id="main-content"
         >
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
 

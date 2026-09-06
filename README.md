@@ -63,6 +63,9 @@ data.
 | Tasks | Full CRUD, complete/incomplete, due date, priority, course link, filters |
 | Exams | Full CRUD, countdown, weighting, revision progress, topics |
 | Notes | Full CRUD plus full-text search running in Postgres |
+| Flashcards | Full CRUD, a 3D flip, four ratings, and a schedule the database owns — rating a card inserts a review and a trigger decides when it returns |
+| Quizzes | Multiple-choice and true/false, built inline; immediate feedback with the explanation, a score screen, retry, and a replay of only the questions you got wrong |
+| Challenges | Invite somebody by username to take one of your quizzes; both scores, a verdict, and every state change through a database function rather than a table write |
 | Schedule | Full CRUD on a navigable week view |
 | Study sessions | Start/stop timer whose state lives in the database, so it survives a restart |
 | Analytics | Total and weekly hours, hours by course, completion rate, streak, activity over time — computed from real sessions |
@@ -106,10 +109,12 @@ and open it (Android will ask you to allow installs from that source).
 
 ### How it behaves natively
 
-- **Offline by construction.** The demo data is compiled into the JavaScript
-  bundle and the fonts are self-hosted, so the app makes no network requests at
-  all — the `INTERNET` permission the Capacitor template ships with has been
-  removed.
+- **Online.** Every course, task, exam, note and study session lives in
+  Supabase, so the app needs `INTERNET` and `ACCESS_NETWORK_STATE`. (Both were
+  removed while the app rendered bundled demo data and genuinely made no
+  requests; they came back when the data became real.) Fonts are still
+  self-hosted, so the shell renders without a round trip.
+- **Biometric lock.** See “Biometric app lock” below.
 - **Status bar and safe areas.** The WebView draws edge to edge
   (`viewport-fit=cover`); the top bar, sidebar and bottom bar pad themselves out
   of `env(safe-area-inset-*)`. Status bar icons follow the in-app theme toggle,
@@ -120,6 +125,45 @@ and open it (Android will ask you to allow installs from that source).
   the WebView boots. The splash background follows light/dark via `values-night`.
 - **Back button.** Handled in `MainActivity` so it walks back through the
   dashboard's history and exits only from the home screen.
+
+### Biometric app lock
+
+On Android the dashboard is locked behind the device's own biometric prompt.
+Opening the app with a stored session shows Android's fingerprint or face
+prompt before anything else; until it succeeds the lock screen is all that is
+mounted, so no page below it runs a query and no row is fetched.
+
+- **The platform does the matching.** `BiometricAuthPlugin` is a thin wrapper
+  around `androidx.biometric.BiometricPrompt`. Android enrols the fingerprint or
+  face and matches it inside the Trusted Execution Environment; the app receives
+  a yes or no and nothing else. No biometric data is read, stored or
+  transmitted, because none of it is available to an app in the first place.
+- **It unlocks a session, it does not create one.** Supabase remains the only
+  thing that authenticates anybody. The prompt gates access to a session
+  Supabase already issued — it cannot mint one, and failing it does not sign you
+  out.
+- **Nothing about a previous success is remembered.** The unlocked state is
+  React state compared against a session epoch, never persisted, so every cold
+  start begins locked and signing out and back in as the same user challenges
+  again.
+- **Failure and cancellation both keep the app locked.** There is no branch that
+  unlocks on error.
+- **Devices without biometrics fall back, and never bypass.** The prompt allows
+  `DEVICE_CREDENTIAL`, so a phone with no sensor (or nothing enrolled) is
+  challenged for its PIN, pattern or password instead. With none of those
+  available the app reports that the device cannot be secured and stays locked.
+- **Returning from the background re-locks.** Configurable in Settings → App
+  lock: immediately, or after 30 seconds, 1, 5 or 15 minutes. Opening the app
+  always asks, whatever the interval.
+- **The session is not in plain storage.** supabase-js keeps its tokens in
+  whatever `auth.storage` it is given and defaults to `localStorage`, which
+  inside a WebView is an unencrypted file in the app's data directory.
+  `SecureStoragePlugin` replaces it with `EncryptedSharedPreferences`, whose
+  master key lives in the Android Keystore and is hardware-backed where the
+  device has a TEE. The Supabase password is never stored at all — it goes
+  straight to Supabase at sign-in and is not retained.
+- **Inert on the web.** `Capacitor.isNativePlatform()` is false in a browser, so
+  the lock does not apply and the web build behaves exactly as it did before.
 
 ### Android limitations
 
@@ -134,8 +178,13 @@ and open it (Android will ask you to allow installs from that source).
 - **Debug builds only.** No signing config is set up, so `assembleDebug`
   produces a debug-signed APK. A Play Store build needs a keystore and
   `assembleRelease`.
-- **Demo data is read-only.** Ticking a task is local component state, as on the
-  web; nothing persists across launches.
+- **The lock needs a secured device.** A phone with no fingerprint, no face
+  unlock and no PIN, pattern or password cannot be challenged, so the app stays
+  locked and offers signing out rather than letting anyone in. Adding any screen
+  lock in Android Settings resolves it.
+- **Switching to the encrypted store signs you out once.** Sessions previously
+  held in the WebView's `localStorage` are not migrated into the Keystore-backed
+  store, so the first launch after upgrading asks for a fresh sign-in.
 
 ## Database setup
 
@@ -182,8 +231,29 @@ order:
 | `0002_rls_policies.sql` | Row Level Security on every table |
 | `0003_triggers.sql` | `updated_at`, auto-profile on signup, task completion sync |
 | `0004_grants.sql` | Grants for `authenticated`; revokes everything from `anon` |
+| `0005_learning_features.sql` | Flashcards (with a scheduling trigger), quizzes, questions, options, attempts — plus their RLS and grants |
+| `0006_social_challenges.sql` | `profiles.username` and `profiles.avatar_path`, challenges, the security-definer functions, and the private `avatars` storage bucket with its policies |
+
+`0005` and `0006` are additive: they create new objects and widen two read
+policies, and they change nothing that `0001`–`0004` established. Apply them in
+order after the first four.
 
 With the Supabase CLI instead: `supabase db push`.
+
+#### What 0006 adds beyond tables
+
+- **A username**, which is the only handle another person can find you by.
+  Optional — leaving it blank keeps the account unlisted.
+- **Three functions** that own the operations a policy cannot express on its
+  own: `create_challenge` (one transaction across two tables),
+  `respond_to_challenge` (only the invited person, only while pending) and
+  `submit_challenge_result` (only ever your own row, and only once).
+- **`search_profiles`**, the controlled directory: a handle, a display name and
+  an avatar path, for signed-in callers, on three characters or more, capped at
+  ten results. Never an email, never the whole table.
+- **A private `avatars` bucket**, readable only by you and by people you share a
+  challenge with, writable only inside your own folder, capped at 2 MB and
+  restricted to JPEG, PNG and WebP.
 
 ### 5. Verify the connection
 
