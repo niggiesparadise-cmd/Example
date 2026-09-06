@@ -1,4 +1,4 @@
-import type { Course, Insert, Lecture, Sublecture, Topic, Update } from "@/lib/supabase/database.types";
+import type { Course, Insert, Lecture, Topic, Update } from "@/lib/supabase/database.types";
 import { deleteRow, getSupabase, requireUserId, unwrap } from "../shared/api";
 
 export type CourseInput = Insert<Course>;
@@ -92,74 +92,6 @@ export async function setTopicComplete(id: string, isComplete: boolean): Promise
 export async function deleteTopic(id: string): Promise<void> {
   await deleteRow("topics", id);
 }
-
-/* ------------------------------------------------------------------ sublectures */
-
-export type SublectureInput = Insert<Sublecture>;
-
-/**
- * A topic's sublectures, in order.
- *
- * Progress is not fetched — it is `completed / total` over these rows, counted
- * where it is shown. Storing a percentage would be a second source of truth
- * that only ever drifts from the rows behind it.
- */
-export async function listSublectures(topicId: string): Promise<Sublecture[]> {
-  return unwrap(
-    await getSupabase()
-      .from("sublectures")
-      .select("*")
-      .eq("topic_id", topicId)
-      .order("position")
-      .order("created_at"),
-  );
-}
-
-/** Every sublecture the user owns, for counting progress across a course. */
-export async function listAllSublectures(): Promise<Sublecture[]> {
-  return unwrap(await getSupabase().from("sublectures").select("*").order("position"));
-}
-
-export async function createSublecture(input: SublectureInput): Promise<Sublecture> {
-  const user_id = await requireUserId();
-  return unwrap(
-    await getSupabase().from("sublectures").insert({ ...input, user_id }).select().single(),
-  );
-}
-
-export async function updateSublecture(
-  id: string,
-  input: Partial<SublectureInput>,
-): Promise<Sublecture> {
-  return unwrap(
-    await getSupabase().from("sublectures").update(input).eq("id", id).select().single(),
-  );
-}
-
-/** Ticking one off stamps the time; unticking clears it. */
-export async function setSublectureComplete(id: string, complete: boolean): Promise<Sublecture> {
-  return updateSublecture(id, { completed_at: complete ? new Date().toISOString() : null });
-}
-
-/**
- * Moves a sublecture up or down by swapping its position with its neighbour.
- *
- * Two updates rather than rewriting the whole list: only two rows actually
- * change, and a failure halfway leaves an order that is still valid.
- */
-export async function swapSublecturePositions(
-  a: { id: string; position: number },
-  b: { id: string; position: number },
-): Promise<void> {
-  await updateSublecture(a.id, { position: b.position });
-  await updateSublecture(b.id, { position: a.position });
-}
-
-export async function deleteSublecture(id: string): Promise<void> {
-  await deleteRow("sublectures", id);
-}
-
-/* ------------------------------------------------------------------ lectures */
 
 export async function listLectures(courseId: string): Promise<Lecture[]> {
   return unwrap(

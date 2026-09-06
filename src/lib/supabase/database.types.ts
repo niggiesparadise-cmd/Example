@@ -14,13 +14,6 @@ export type SessionKind = "lecture" | "lab" | "seminar" | "tutorial" | "study" |
 export type FlashcardRating = "again" | "hard" | "good" | "easy";
 export type QuizQuestionKind = "multiple-choice" | "true-false";
 export type ChallengeStatus = "pending" | "accepted" | "declined" | "active" | "completed" | "expired";
-export type NotificationKind =
-  | "task-due"
-  | "exam-soon"
-  | "study-reminder"
-  | "flashcards-due"
-  | "challenge-invitation"
-  | "challenge-result";
 
 /** Palette slot 1–5; see `src/lib/chart-palette.ts`. */
 export type ColorSlot = 1 | 2 | 3 | 4 | 5;
@@ -230,38 +223,6 @@ export type ChallengeParticipant = {
   created_at: string;
 };
 
-/**
- * The third level of the course hierarchy: course → topic → sublecture.
- *
- * `completed_at` rather than a boolean — "when" is strictly more information
- * than "whether", and a topic's percentage is counted from these rows rather
- * than stored anywhere.
- */
-export type Sublecture = Timestamps & {
-  id: string;
-  user_id: string;
-  topic_id: string;
-  title: string;
-  description: string | null;
-  scheduled_date: string | null;
-  completed_at: string | null;
-  position: number;
-};
-
-export type AppNotification = {
-  id: string;
-  user_id: string;
-  kind: NotificationKind;
-  title: string;
-  body: string | null;
-  /** Where tapping it goes, plus whatever the row needs to describe itself. */
-  data: Record<string, unknown>;
-  /** Stable identity for a fact that can be re-derived, so it arrives once. */
-  dedupe_key: string | null;
-  read_at: string | null;
-  created_at: string;
-};
-
 /** What the `search_profiles` / `challenge_profiles` functions return — and all they return. */
 export type PublicProfile = {
   id: string;
@@ -343,12 +304,6 @@ export type Database = {
         never
       >;
       challenges: TableShape<Challenge, Insert<Challenge> & { creator_id: string }, Update<Challenge>>;
-      sublectures: TableShape<Sublecture, Insert<Sublecture> & { user_id: string }, Update<Sublecture>>;
-      notifications: TableShape<
-        AppNotification,
-        Omit<AppNotification, "id" | "created_at" | "read_at"> & { user_id: string },
-        Partial<Pick<AppNotification, "read_at">>
-      >;
       challenge_participants: TableShape<
         ChallengeParticipant,
         Omit<ChallengeParticipant, "id" | "created_at">,
@@ -398,7 +353,6 @@ export type Database = {
       flashcard_rating: FlashcardRating;
       quiz_question_kind: QuizQuestionKind;
       challenge_status: ChallengeStatus;
-      notification_kind: NotificationKind;
     };
   };
 }

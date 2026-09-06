@@ -1,14 +1,13 @@
 "use client";
 
-import { Button, Dropdown, Header, SearchField, Separator } from "@heroui/react";
-import { GraduationCap, LogOut, Plus, Settings, User } from "lucide-react";
+import { Badge, Button, Dropdown, Header, SearchField, Separator } from "@heroui/react";
+import { Bell, GraduationCap, LogOut, Plus, Settings, User } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { site } from "@/config/site";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useProfile } from "@/features/profile/use-profile";
 import { UserAvatar } from "@/features/profile/user-avatar";
-import { NotificationCenter } from "@/features/notifications/notification-center";
 import { ThemeToggle } from "./theme-toggle";
 
 /**
@@ -58,7 +57,14 @@ export function Topbar() {
 
           <ThemeToggle />
 
-          <NotificationCenter />
+          <Badge.Anchor>
+            <Button aria-label="Notifications, 3 unread" isIconOnly size="sm" variant="ghost">
+              <Bell aria-hidden="true" className="size-[18px]" strokeWidth={1.85} />
+            </Button>
+            <Badge aria-hidden="true" color="danger" placement="top-right" size="sm">
+              3
+            </Badge>
+          </Badge.Anchor>
 
           <Separator className="mx-1 h-6 self-center max-sm:hidden" orientation="vertical" />
 

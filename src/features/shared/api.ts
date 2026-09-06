@@ -52,9 +52,7 @@ type DeletableTable =
   | "quizzes"
   | "quiz_questions"
   | "quiz_options"
-  | "challenges"
-  | "sublectures"
-  | "notifications";
+  | "challenges";
 
 export async function deleteRow(table: DeletableTable, id: string): Promise<void> {
   const { data, error } = await getSupabase().from(table).delete().eq("id", id).select("id");

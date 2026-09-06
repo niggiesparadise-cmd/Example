@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card, Chip } from "@heroui/react";
-import { FileUp, Layers, Pencil, Play, Plus, Trash2 } from "lucide-react";
+import { Layers, Pencil, Play, Plus, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 import { GlassStat } from "@/components/glass/glass-card";
 import { CourseDot } from "@/components/ui/course-dot";
@@ -11,7 +11,6 @@ import { PageHeader } from "@/components/ui/page-header";
 import { listAllTopics, listCourses } from "@/features/courses/api";
 import { deleteFlashcard, listDueFlashcards, listFlashcards } from "@/features/flashcards/api";
 import { FlashcardFormDialog } from "@/features/flashcards/flashcard-form";
-import { ImportFlashcardsDialog } from "@/features/flashcards/import-flashcards";
 import { StudyDeck } from "@/features/flashcards/study-deck";
 import { useMutation } from "@/features/shared/use-mutation";
 import { useQuery } from "@/features/shared/use-query";
@@ -40,7 +39,6 @@ export default function FlashcardsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<Flashcard | undefined>(undefined);
   const [session, setSession] = useState<Flashcard[] | undefined>(undefined);
-  const [isImportOpen, setIsImportOpen] = useState(false);
 
   const remove = useMutation(async (id: string) => deleteFlashcard(id), {
     successMessage: "Card deleted.",
@@ -86,16 +84,10 @@ export default function FlashcardsPage() {
     <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6">
       <PageHeader
         actions={
-          <>
-            <Button onPress={() => setIsImportOpen(true)} size="sm" variant="secondary">
-              <FileUp aria-hidden="true" className="size-4" strokeWidth={2} />
-              Import
-            </Button>
-            <Button onPress={() => openForm()} size="sm" variant="primary">
-              <Plus aria-hidden="true" className="size-4" strokeWidth={2.25} />
-              Add card
-            </Button>
-          </>
+          <Button onPress={() => openForm()} size="sm" variant="primary">
+            <Plus aria-hidden="true" className="size-4" strokeWidth={2.25} />
+            Add card
+          </Button>
         }
         description={
           cards.length === 0
@@ -216,16 +208,6 @@ export default function FlashcardsPage() {
           key={editing?.id ?? "new"}
           onOpenChange={setIsFormOpen}
           onSaved={refetch}
-          topics={data?.topics ?? []}
-        />
-      ) : null}
-
-      {isImportOpen ? (
-        <ImportFlashcardsDialog
-          courses={courses}
-          isOpen={isImportOpen}
-          onImported={refetch}
-          onOpenChange={setIsImportOpen}
           topics={data?.topics ?? []}
         />
       ) : null}
